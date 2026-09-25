@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>通用领域知识 Bot · 设计与评审 v0.2</title>
+<style>
+:root{--paper:#f7f8fa;--surface:#fff;--ink:#152a32;--muted:#52666e;--line:#dce4e7;--accent:#08776b;--soft:#e8f5ef;--nav:#122d36;--blue:#dceaf0;--radius:14px;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--paper);font-size:16px;line-height:1.8}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:82px}body{margin:0}a{color:var(--accent);text-underline-offset:3px}button,select{font:inherit}button,a,select{-webkit-tap-highlight-color:transparent}button{cursor:pointer}a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid #12a593;outline-offset:4px;border-radius:4px}.skip{position:absolute;top:-100px;left:20px;z-index:50;background:white;padding:10px}.skip:focus{top:8px}.sidebar{position:fixed;inset:0 auto 0 0;width:246px;background:var(--nav);color:#e8f1f3;padding:28px 22px;display:flex;flex-direction:column;z-index:20}.brand{font-size:12px;font-weight:600;letter-spacing:2px;color:#9fc4c7}.brand-title{font-size:22px;line-height:1.4;margin:10px 0 6px;color:#fff;font-weight:600}.brand-sub{font-size:12px;color:#b8cdd1}.sidebar nav{margin-top:27px;overflow:auto;flex:1}.sidebar nav a{display:flex;gap:12px;text-decoration:none;color:#c5d9de;font-size:13px;padding:9px 11px;border-radius:7px;margin:2px 0;line-height:1.7}.sidebar nav a span{font-size:11px;color:#9fb9be;min-width:18px;font-variant-numeric:tabular-nums}.sidebar nav a:hover{background:#203e47}.sidebar nav a.active{background:#dff4eb;color:#173d39}.sidebar nav a.active span{color:#336b5f}.nav-separator{height:1px;background:#36535a;margin:13px 8px}.sidebar-footer{font-size:11px;line-height:1.7;color:#b6cbd0;border-top:1px solid #36535a;padding-top:16px;margin-top:18px}.sidebar-footer strong{font-size:12px;font-weight:500;color:#ecf3f4}.workspace{margin-left:246px}.topbar{position:sticky;top:0;z-index:10;background:#f7f8faf2;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 44px;gap:16px}.breadcrumb{font-size:12px;color:var(--muted)}.topbar-actions{display:flex;gap:16px;align-items:center}.topbar-actions a{font-size:12px;text-decoration:none}.print-btn{border:1px solid #beced3;border-radius:7px;padding:6px 13px;background:white;color:var(--ink);font-size:12px}.print-btn:hover{background:#ecf2f3}.mobile-nav{display:none}.content{max-width:1170px;margin:auto;padding:48px 54px 76px}.eyebrow{font-size:12px;letter-spacing:2px;color:var(--accent);font-weight:600}.hero h1{font-size:42px;line-height:1.24;letter-spacing:-1.2px;margin:13px 0 18px;font-weight:650}.hero .lead{font-size:17px;line-height:1.9;color:var(--muted);max-width:760px;margin:0}.hero-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:25px 0 28px}.pill{font-size:11px;padding:4px 10px;border-radius:20px;letter-spacing:.2px;background:var(--soft);color:#165448}.plain-meta{font-size:12px;color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:30px}.metric{padding:21px 20px 20px 0}.metric+.metric{padding-left:26px;border-left:1px solid var(--line)}.metric-value{font-size:37px;line-height:1.2;font-weight:600;letter-spacing:-1px;font-variant-numeric:tabular-nums}.metric-value small{font-size:15px;font-weight:400;letter-spacing:0;margin-left:5px}.metric-label{font-size:12px;color:var(--muted);margin-top:9px}.metric-note{font-size:11px;color:var(--muted);margin-top:9px}.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:30px 0 27px}.overview-item{border-left:3px solid #9ac9bb;padding:3px 18px}.overview-item h3{font-size:14px;margin:0 0 8px}.overview-item p{font-size:13px;line-height:1.8;color:var(--muted);margin:0}.brief-note{background:#eef3f5;padding:15px 19px;border-radius:9px;font-size:13px;line-height:1.9;margin:22px 0}.brief-note strong{color:#244e5c}.document-section{border-top:1px solid var(--line);padding-top:32px;margin-top:45px;scroll-margin-top:88px}.document-section h2,#review h2{font-size:25px;font-weight:600;line-height:1.5;margin:0 0 25px;letter-spacing:-.45px}.document-section h3{font-size:18px;font-weight:600;margin:31px 0 13px}.document-section p,.document-section li{font-size:14px;line-height:1.95}.document-section p{margin:14px 0}.document-section ul,.document-section ol{padding-left:24px;margin:15px 0}.document-section li{padding-left:3px;margin:7px 0}.document-section code,.review-content code{font-family:"SFMono-Regular",Consolas,monospace;font-size:.87em;background:#eaf0f2;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}.document-section pre{background:#122d36;color:#dfedf0;padding:23px;border-radius:11px;overflow:auto;line-height:1.7;font-size:12px}.document-section pre code{background:none;padding:0;color:inherit;font-size:12px;white-space:pre}.document-section a{overflow-wrap:anywhere}.table-wrap{width:100%;overflow-x:auto;margin:20px 0 25px;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;font-size:13px;background:white}th{text-align:left;font-weight:600;background:#edf2f4;color:#29444e}th,td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.8;overflow-wrap:anywhere}tr:last-child td{border-bottom:0}td:first-child{font-weight:500;color:#2a5057}th:first-child{width:21%}.architecture{margin:25px 0 30px;background:white;border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px}.architecture figcaption{font-size:16px;font-weight:600;margin-bottom:23px}.flow-lane+.flow-lane{border-top:1px solid var(--line);margin-top:22px;padding-top:20px}.lane-label{font-size:11px;color:var(--accent);font-weight:600;letter-spacing:1px}.document-section .flow-steps{list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;padding:0;margin:12px 0 0}.document-section .flow-steps li{border:1px solid #d6e3e6;border-radius:8px;padding:11px 9px;margin:0;background:#f7fafb;position:relative;min-width:0}.flow-steps li:not(:last-child):after{content:'→';position:absolute;right:-16px;top:35%;color:#7b989f;font-size:15px}.step-index{font-size:10px;color:#597e84;display:block;line-height:1.4}.flow-steps strong{font-size:12px;display:block;margin:7px 0 3px;white-space:nowrap}.flow-steps small{font-size:10px;color:var(--muted);display:block;line-height:1.7}.document-section .lane-note{font-size:11px;color:var(--muted);margin:11px 0 0}.review-section{margin-top:52px;padding-top:35px;border-top:1px solid var(--line);scroll-margin-top:88px}.review-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:30px;margin:22px 0}.review-summary p{font-size:14px;line-height:1.9;margin:0;color:var(--muted);max-width:710px}.review-grade{font-size:11px;color:#566f78;letter-spacing:1px;white-space:nowrap;border-left:1px solid var(--line);padding-left:20px}.review-grade b{font-size:25px;color:var(--accent);display:block;letter-spacing:0;font-weight:600}.review-table th:first-child{width:10%}.severity{font-size:10px;padding:2px 6px;background:#edf1f4;border-radius:4px;margin-left:5px;color:#425d67;white-space:nowrap}.fixed{font-size:11px;color:var(--accent);white-space:nowrap}.review-details{border:1px solid var(--line);border-radius:10px;background:white;margin:14px 0;overflow:hidden}.review-details summary{cursor:pointer;padding:17px 21px;font-size:14px;font-weight:500}.review-details summary span{font-weight:400;color:var(--muted);font-size:11px;margin-left:12px}.review-content{padding:0 24px 24px;font-size:13px;line-height:1.95;overflow-wrap:anywhere}.review-content h2{font-size:19px!important;margin-top:26px!important}.review-content h3{font-size:16px;margin:27px 0 10px}.review-content p{margin:13px 0}.review-content ul{padding-left:22px}.review-content li{margin:9px 0}.review-content .table-wrap{font-size:12px}.ending{display:flex;justify-content:space-between;gap:20px;margin-top:50px;padding-top:20px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}.ending a{text-decoration:none}.footer-note{font-size:12px;line-height:1.9;margin:20px 0;color:var(--muted)}
+@media(min-width:1450px){.content{padding-top:58px}.hero h1{font-size:48px}}
+@media(max-width:1100px){.sidebar{width:214px;padding-left:16px;padding-right:16px}.workspace{margin-left:214px}.content{padding:35px 30px 60px}.topbar{padding:0 30px}.flow-steps strong{white-space:normal}.architecture{padding:20px 15px}}
+@media(max-width:800px){.sidebar{display:none}.workspace{margin-left:0}.topbar{height:auto;min-height:60px;padding:12px 20px;flex-wrap:wrap}.breadcrumb{font-size:11px}.topbar-actions{gap:12px}.mobile-nav{display:block;width:100%;border:1px solid #c7d5da;border-radius:6px;background:white;padding:7px 9px;color:var(--ink);font-size:13px}.content{padding:30px 23px 50px}.hero h1{font-size:34px;letter-spacing:-.8px}.hero .lead{font-size:15px}.document-section{scroll-margin-top:132px}.document-section h2,#review h2{font-size:23px}.flow-steps small{font-size:11px}.document-section .flow-steps{grid-template-columns:1fr;gap:15px}.document-section .flow-steps li{padding:10px 13px;display:grid;grid-template-columns:26px 1fr;column-gap:8px;align-items:center}.flow-steps strong{margin:0;font-size:13px;grid-column:2}.step-index{grid-row:1/3;font-size:11px}.flow-steps small{grid-column:2}.flow-steps li:not(:last-child):after{content:'↓';top:auto;bottom:-18px;left:22px;right:auto;font-size:14px}.overview-grid{gap:15px}.review-section{scroll-margin-top:132px}.review-summary{gap:15px}.review-grade{padding-left:15px}.table-wrap{border-radius:6px}th,td{padding:10px;font-size:12px}table{min-width:460px}.metric-value{font-size:29px}.metric+.metric{padding-left:16px}.metric{padding-right:10px}.metric-label{font-size:11px}.review-details summary span{display:block;margin:5px 0 0}}
+@media(max-width:430px){.content{padding-left:18px;padding-right:18px}.hero h1{font-size:31px}.overview-grid{grid-template-columns:1fr;gap:20px}.metric-value{font-size:26px}.metric-value small{font-size:12px}.metric+.metric{padding-left:12px}.metric-label{line-height:1.7}.review-summary{display:block}.review-grade{border-left:0;padding:0;margin-top:15px;display:flex;align-items:center;gap:12px}.review-grade b{display:inline}.hero-meta{gap:8px}.ending{flex-direction:column;gap:8px}.topbar-actions a{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{html{font-size:11px;scroll-behavior:auto}body{background:white}.sidebar,.topbar,.skip,.ending a{display:none!important}.workspace{margin:0}.content{max-width:none;margin:0;padding:0}.hero h1{font-size:30px}.hero .lead{font-size:13px}.metrics{margin-top:18px}.metric-value{font-size:27px}.document-section{margin-top:25px;padding-top:20px}.document-section h2{font-size:20px;break-after:avoid}.document-section h3{font-size:16px;break-after:avoid}.document-section p,.document-section li{font-size:11px}.table-wrap{overflow:visible}.table-wrap table{min-width:0}th,td{font-size:10px;padding:7px}.architecture,.flow-lane,.review-details{break-inside:avoid}.document-section pre{white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;background:#f1f3f4;color:#14282e}.document-section pre code{white-space:pre-wrap}.review-content{font-size:11px}.review-details summary{font-size:13px}.review-details summary span{font-size:10px}.review-summary p{font-size:12px}.document-section .flow-steps{grid-template-columns:repeat(5,minmax(0,1fr))}.flow-steps strong{font-size:10px}.flow-steps small{font-size:9px}.review-section{break-before:page}a{color:#20555c}.pill{border:1px solid #bfd6cc}.footer-note{font-size:10px}@page{size:A4;margin:16mm 15mm}}
+</style></head><body>
+<a class="skip" href="#main">跳到正文</a>
+<aside class="sidebar" aria-label="设计文档目录"><div class="brand">KNOWLEDGE BOT</div><div class="brand-title">领域知识助手</div><div class="brand-sub">设计说明 · v0.2</div><nav><a href="#overview" class="active"><span>◎</span>方案总览</a><div class="nav-separator"></div><a href="#section-1"><span>01</span>目标与范围</a><a href="#section-2"><span>02</span>总体架构</a><a href="#section-3"><span>03</span>Wiki 接入与发布</a><a href="#section-4"><span>04</span>Pi 问答链路</a><a href="#section-5"><span>05</span>角色与记忆</a><a href="#section-6"><span>06</span>反馈闭环</a><a href="#section-7"><span>07</span>速度与容量</a><a href="#section-8"><span>08</span>数据与接口</a><a href="#section-9"><span>09</span>实施与验收</a><a href="#section-10"><span>10</span>待验证事项</a><a href="#section-11"><span>11</span>官方资料</a><div class="nav-separator"></div><a href="#review"><span>✓</span>高级模型评审</a></nav><div class="sidebar-footer"><strong>Pi × llm_wiki</strong><br>2026.09.25 · 设计与评审<br>公司接口与性能待实测</div></aside>
+<div class="workspace"><header class="topbar"><div class="breadcrumb">技术方案 / 通用知识问答框架</div><div class="topbar-actions"><a href="#review">查看评审结论 ↗</a><button type="button" class="print-btn" id="print">打印 / 保存 PDF</button></div><select class="mobile-nav" aria-label="跳转到章节"><option value="#overview">方案总览</option><option value="#section-1">01 目标与范围</option><option value="#section-2">02 总体架构</option><option value="#section-3">03 Wiki 接入与发布</option><option value="#section-4">04 Pi 问答链路</option><option value="#section-5">05 角色与记忆</option><option value="#section-6">06 反馈闭环</option><option value="#section-7">07 速度与容量</option><option value="#section-8">08 数据与接口</option><option value="#section-9">09 实施与验收</option><option value="#section-10">10 待验证事项</option><option value="#section-11">11 官方资料</option><option value="#review">高级模型评审</option></select></header>
+<main class="content" id="main"><section class="hero" id="overview"><div class="eyebrow">ARCHITECTURE DESIGN / V0.2</div><h1>通用领域知识 Bot</h1><p class="lead">以 Pi 构建问答服务，复用 llm_wiki 维护领域知识。<br>每个领域独立入口，同一套框架支撑角色化回答、个人偏好和知识改进。</p><div class="hero-meta"><span class="pill">高级模型已评审</span><span class="pill">进入兼容性验证</span><span class="plain-meta">GPT-6 Astra · 首轮评审 + 聚焦复查</span></div><div class="metrics" aria-label="性能验收目标，非实测结果"><div class="metric"><div class="metric-value">3<small>秒</small></div><div class="metric-label">首段有用内容</div></div><div class="metric"><div class="metric-value">10<small>秒</small></div><div class="metric-label">完整回答</div></div><div class="metric"><div class="metric-value">95<small>%</small></div><div class="metric-label">普通请求同时达标</div></div></div><div class="metric-note">以上为验收目标，尚非实测结果；失败、超时和排队不能从统计中消失。</div><div class="overview-grid"><div class="overview-item"><h3>统一知识，按角色回答</h3><p>业务顾问聚焦准备与操作，技术顾问补充配置与依赖。同一领域使用相同的已发布事实。</p></div><div class="overview-item"><h3>保留偏好，知识经人复核</h3><p>长期记忆仅保存个人偏好，不记录业务任务进度。用户可以纠错与修订，科技负责人负责发布。</p></div></div><div class="brief-note"><strong>首版技术决定：</strong>TypeScript + Pi SDK；企业微信与网页共用服务；llm_wiki 经审核发布为独立知识副本；不使用 Dify。广告作为首个验证领域，再用第二领域验证通用性。</div></section>
+<article aria-label="完整设计正文"><section class="document-section" id="section-1"><h2>1. 目标与已经确认的范围</h2>
+<p>建设一套通用知识问答框架，各业务领域复用 nashsu/llm_wiki 管理知识，通过统一发布入口接入。每个领域使用独立企业微信 bot，共用后台服务；网页支持问答、查看引用、反馈及修订复核。</p>
+<p>首个领域为广告，试点覆盖新渠道接入、腾讯广告新增代理商、腾讯 RTA 新增策略。新增代理商已确认是固定流程；其余流程的分支需要在整理知识时确认。用户需要完成准备和配置，首版只提供指导，不读取广告系统实际状态、不执行配置。</p>
+<p>已确认要求：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>首版决定</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模型与框架</td>
+<td>使用公司批准的模型服务；使用 Pi SDK；不使用 Dify</td>
+</tr>
+<tr>
+<td>领域接入</td>
+<td>统一复用 nashsu/llm_wiki；不做通用网站爬虫或其他 Wiki 连接器</td>
+</tr>
+<tr>
+<td>用户角色</td>
+<td>业务顾问与技术顾问；同领域知识可见范围一致，定位和表达不同</td>
+</tr>
+<tr>
+<td>记忆</td>
+<td>个人偏好长期保存，保留当前会话上下文；不做任务进度记忆</td>
+</tr>
+<tr>
+<td>反馈</td>
+<td>用户可反馈、补证据、提修订；指定科技负责人复核发布</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>普通知识问答至少 95% 在 3 秒内开始输出有用内容，10 秒内完成</td>
+</tr>
+<tr>
+<td>成功标准</td>
+<td>业务能够自行完成操作为主要目标；减少专家答疑与知识持续改善为辅助指标</td>
+</tr>
+</tbody></table></div>
+<p>首版不做跨领域联合回答、自动学习所有历史聊天、任务管理、多 Agent 协商、自主联网补充业务事实或模型微调。领域间是否有相同可见人群由接入配置明确，不能从“同领域角色权限相同”推导所有领域都可访问。</p>
+</section><section class="document-section" id="section-2"><h2>2. 总体结构与责任边界</h2>
+<figure class="architecture" aria-labelledby="architecture-title"><figcaption id="architecture-title">一套核心，三条协作链路</figcaption><div class="flow-lane"><div class="lane-label">01 / 知识发布</div><ol class="flow-steps"><li><span class="step-index">01</span><strong>llm_wiki</strong><small>唯一知识维护源</small></li><li><span class="step-index">02</span><strong>发布助手</strong><small>不可变内容快照</small></li><li><span class="step-index">03</span><strong>科技复核</strong><small>确认内容与依据</small></li><li><span class="step-index">04</span><strong>构建与评估</strong><small>候选版本回测</small></li><li><span class="step-index">05</span><strong>知识发布</strong><small>原子激活索引</small></li></ol><p class="lane-note">线上问答读取已发布副本，维护者桌面离线不影响服务。</p></div><div class="flow-lane"><div class="lane-label">02 / 在线问答</div><ol class="flow-steps"><li><span class="step-index">01</span><strong>企微 · 网页</strong><small>按领域进入</small></li><li><span class="step-index">02</span><strong>接入与会话</strong><small>身份与个人偏好</small></li><li><span class="step-index">03</span><strong>Pi 问答</strong><small>检索后一次生成</small></li><li><span class="step-index">04</span><strong>引用检查</strong><small>按内容块校验</small></li><li><span class="step-index">05</span><strong>流式回答</strong><small>角色化呈现</small></li></ol><p class="lane-note">Pi 读取当前领域知识、必要偏好，调用公司批准的模型；当前会话按用户隔离。</p></div><div class="flow-lane"><div class="lane-label">03 / 反馈改进</div><ol class="flow-steps"><li><span class="step-index">01</span><strong>用户反馈</strong><small>关联原答案与版本</small></li><li><span class="step-index">02</span><strong>补证与修订</strong><small>形成更正草稿</small></li><li><span class="step-index">03</span><strong>回写维护源</strong><small>保留更正依据</small></li><li><span class="step-index">04</span><strong>复核与回测</strong><small>阻止旧问题复发</small></li><li><span class="step-index">05</span><strong>发布与通知</strong><small>关闭反馈事项</small></li></ol><p class="lane-note">发布反馈沿用知识发布链路；用户修订必须经科技负责人复核。</p></div></figure>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>负责</th>
+<th>不负责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>llm_wiki</td>
+<td>原资料整理、知识编写与维护</td>
+<td>在线多人问答的可用性、平台发布授权</td>
+</tr>
+<tr>
+<td>发布助手与发布服务</td>
+<td>快照、复核、索引、评估、激活、撤回</td>
+<td>在未经确认时生成新的业务规则</td>
+</tr>
+<tr>
+<td>知识服务</td>
+<td>按领域和版本检索、读取完整流程、提供引用</td>
+<td>用户身份选择、答案表达</td>
+</tr>
+<tr>
+<td>Pi 问答服务</td>
+<td>组织上下文、调用模型、受限工具执行、流式回答</td>
+<td>决定谁有发布权限</td>
+</tr>
+<tr>
+<td>业务服务</td>
+<td>身份、角色、会话、偏好、反馈、审计</td>
+<td>将用户纠错自动作为权威知识</td>
+</tr>
+<tr>
+<td>企微与网页适配器</td>
+<td>消息收发、展示和交互</td>
+<td>各自维护另一份知识或记忆</td>
+</tr>
+</tbody></table></div>
+<p>建议工程形态为 TypeScript 模块化服务，按部署需要拆分入口进程和异步 worker；首版不拆成大量微服务。持久化数据放关系数据库，不可变知识内容放公司对象存储或受控文件存储。消息、反馈、发布和通知使用数据库任务表/outbox，可重试并保证幂等。</p>
+</section><section class="document-section" id="section-3"><h2>3. “提供 Wiki 地址即可接入”的实际契约</h2>
+<h3>3.1 地址是什么</h3>
+<p>接入地址定义为本框架的“已发布知识入口”，例如 <code>https://knowledge.internal/domains/ads/manifest.json</code>，不是工作人员电脑上的 localhost API，也不是任意 Wiki 网页。示例域名与下文接口均为拟议设计。</p>
+<p>llm_wiki 当前的 MCP 服务转发本地桌面 API，要求桌面应用运行，因此线上请求不依赖该桌面进程。[S1]</p>
+<p>第一次建立平台时开发一个发布助手，在能读取 llm_wiki 工作区的位置运行（维护者机器或公司服务器）。它读取选定页面、生成内容快照并提交到发布台。复核发布后，生成稳定知识入口地址。后续 bot 管理员填入此地址，平台读取描述信息，查找并绑定此前已创建的领域实例，不重复创建领域。</p>
+<p>“只填地址”覆盖知识接入体验；企微 bot 凭据、公司模型连接、身份目录与首位负责人属于一次性开通配置。不能从地址自动推断密钥和授权。平台提供默认业务/技术角色模板，负责人可预览并配置领域称谓。</p>
+<h3>3.2 新增领域的步骤</h3>
+<ol>
+<li>管理员先创建 pending 领域，指定知识负责人、访问范围，并签发仅属于该领域的发布助手凭据。</li>
+<li>领域维护者配对一个受控 llm_wiki 工作区，手动提交页面快照、来源关系和候选变更，负责人在网页复核。</li>
+<li>构建候选索引并运行该领域评估，生成受平台信任的发布记录与稳定入口地址。</li>
+<li>bot 管理员登记该地址，平台解析出已经创建的领域，并绑定企业微信 bot；复用入口时无需再次导入原始资料。</li>
+<li>用该领域试题验收后启用。后续内容更新走同一发布链路，不修改框架代码。</li>
+</ol>
+<p>首版助手由领域维护者手动运行，一次只绑定一个工作区；不要求自动常驻扫描。后台展示最后提交、最后发布与待处理状态，助手离线不影响已经发布的在线知识。平台无法凭空知道离线工作区的改动，不能把“线上仍可用”显示成“与本地始终最新”；变更生效前发布仍由指定负责人落实。</p>
+<h3>3.3 发布格式</h3>
+<p>在 llm_wiki 原有文件之外，助手生成平台自己的 manifest 和领域配置，不假定这些字段为 llm_wiki 原生功能：</p>
+<pre><code class="language-json">{
+  &quot;schema_version&quot;: &quot;1&quot;,
+  &quot;domain_id&quot;: &quot;ads&quot;,
+  &quot;release_id&quot;: &quot;ads-r0001&quot;,
+  &quot;parent_release_id&quot;: null,
+  &quot;published_at&quot;: &quot;2026-09-25T08:00:00Z&quot;,
+  &quot;pages&quot;: [
+    {
+      &quot;id&quot;: &quot;tencent-agency-onboarding&quot;,
+      &quot;path&quot;: &quot;procedures/tencent-agency.md&quot;,
+      &quot;sha256&quot;: &quot;&lt;content-hash&gt;&quot;,
+      &quot;kind&quot;: &quot;procedure&quot;,
+      &quot;title&quot;: &quot;腾讯广告新增代理商&quot;,
+      &quot;source_refs&quot;: [&quot;sources/agency-guide#section-2&quot;],
+      &quot;links&quot;: [&quot;terms/advertiser-account&quot;]
+    }
+  ]
+}
+</code></pre>
+<p>发布服务根据实际审核记录生成 manifest；不信任源文件自称 <code>approved: true</code>。每页内容哈希绑定复核记录，审核后再修改文件必须重新复核。稳定文档 ID 保持引用可追溯，改名不改变 ID；删除和替换通过新版本体现。</p>
+<p>流程页需要：适用范围、前置条件、准备材料、完整步骤、协作岗位、验收标准、常见问题、负责人、复核时间。缺失关键流程字段时阻止该页作为流程指南发布；普通概念页采用较轻模板。</p>
+<p>只发布审核通过的页面与被允许引用的来源摘录；原始材料不是默认全部上线。链接闭包检查确保回答需要的步骤、术语及来源能在同一发布版本中读取。llm_wiki 自动生成的摘要、评论或待复核草稿不能绕过这条边界。</p>
+<p>助手首版协议固定如下，作为实现与第二领域接入验收的契约：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>首版支持及处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>内容</td>
+<td>UTF-8 Markdown、常见标题/列表/表格/代码块；读取 YAML frontmatter，保留原字段但不执行其指令</td>
+</tr>
+<tr>
+<td>内部链接</td>
+<td>Markdown 相对链接、<code>[[path]]</code>、<code>[[path#anchor|label]]</code>；解析到规范路径与稳定 ID，歧义、越界路径和必要死链阻止发布</td>
+</tr>
+<tr>
+<td>稳定 ID</td>
+<td>发布助手维护独立映射清单；改名需声明旧 ID 的新路径，不能仅靠标题或相似度猜测</td>
+</tr>
+<tr>
+<td>来源</td>
+<td>提交被选中的文本摘录、原来源路径/标识和内容哈希；源材料未获准公开时只展示可公开引用说明，不下发原件</td>
+</tr>
+<tr>
+<td>附件</td>
+<td>仅发布人工选定的静态图片等白名单资源，携带媒体类型、大小与哈希；未知附件报错，不在问答时临时解析远程 Office/PDF</td>
+</tr>
+<tr>
+<td>快照包</td>
+<td>页面、来源摘录、附件及 ID 映射形成完整清单；服务端逐项校验哈希与所属领域，上传完成才创建候选版本</td>
+</tr>
+<tr>
+<td>提交与重复</td>
+<td><code>submission_id + bundle_hash</code> 幂等；中断上传可以重试，缺文件或内容变化的包不进入复核</td>
+</tr>
+<tr>
+<td>写回</td>
+<td>首版输出修订包，由维护者在停止编辑/导入的维护窗口应用；无法保证单写者时仅供人工合并，再重新快照</td>
+</tr>
+</tbody></table></div>
+<p>配置、来源映射及附件清单均存放在助手专用目录或平台记录中，不要求修改 llm_wiki 内部数据库。阶段 0 须交付实际小工作区的安装、导出、改名、引用、纠错和再次导出操作说明。</p>
+<h3>3.4 索引、激活与撤回</h3>
+<p>版本状态：<code>submitted → reviewing → building → evaluating → ready → active → retired/revoked</code>；失败保留原因，不影响当前 active 版本。</p>
+<p>候选版本内容与索引构建完毕、检查通过后，按领域串行激活；在同一数据库事务内检查 <code>parent_release_id == 当前 active_release_id</code>、候选仍为 ready、审批及来源依赖未失效，再 compare-and-swap 切换 active 指针。内容包哈希、索引构建 ID、检索配置、角色提示词配置和评估结果绑定为一个经过验证的发布单元，任意组成发生变化都重新执行受影响的评估。</p>
+<p>发布任务以领域与 release ID 去重；比较失败的候选版本必须基于当前版本重新合并，并重新复核受影响内容和评估，禁止用过期候选覆盖新版本。撤回记录同时使依赖相同失效依据的待激活候选不可用。每次激活同时写入 outbox，通知索引路由和缓存；请求直接读取权威版本指针，未准备好该版本的副本不得接收请求。显式回滚为单独授权操作，记录理由并执行同样的有效性检查。</p>
+<p>请求开始时固定 release ID，读取和引用始终使用该版本。旧版保存用于审计；日常新请求使用新版。跨轮问题重新检索当前版本，不把旧聊天中的答案当作证据。紧急撤回状态优先于请求固定版本，不能继续使用已撤回证据。</p>
+<p>索引建立失败时不激活半成品。首版仅做整版本撤回，避免增加按页禁用覆盖层；单页问题可生成删除/修正该页的新版本。严重错误撤回事务提交后，新检索及每次流式段落发送前都检查撤回状态；状态不可验证时停止该答案。已发送的文字无法保证从企业微信客户端消失：网页标记引用失效，企微按原答案定位信息另发更正通知，记录通知成败并重试；不承诺跨系统原子撤销或消除已经读到的错误内容。回滚只能指向仍获认可的版本，不能自动恢复已确认错误的旧版。没有安全版本可用时明确显示知识维护中。撤回到停止输出的传播耗时作为专项联调指标。</p>
+</section><section class="document-section" id="section-4"><h2>4. Pi 使用方式与问答链路</h2>
+<p>使用 <code>pi-ai</code> 封装公司模型接口，使用 <code>pi-agent-core</code> 管理受限工具调用及流式事件。Pi 官方文档提供上下文处理与事件订阅机制；这里的领域服务、关系数据库会话和业务偏好属于我们自己的实现。[S2][S3]</p>
+<p>通过内部 <code>ModelGateway</code>、<code>AgentRunner</code> 封装 Pi 调用，固定依赖版本。企业微信消息、发布协议与数据库模型不依赖 Pi 的内部消息类型，以便升级或替换。</p>
+<h3>4.1 普通问答的快速链路</h3>
+<ol>
+<li>网关根据已认证的 bot ID / 网页领域入口确定 <code>tenant_id + domain_id</code>，识别用户，分配 answer ID。</li>
+<li>并行读取角色配置、个人偏好和当前会话，并固定当前知识版本。</li>
+<li>使用问题、近期用户原话和必要实体进行检索；默认不额外调用模型做意图分类或改写。</li>
+<li>先以领域术语别名、标题与关键词查找流程；需要时加入公司批准的 embedding 检索。中文字词检索必须验证分词质量，不能直接假定数据库默认英文全文索引可用。</li>
+<li>取回命中流程的完整必要步骤及关联页；证据范围合适后，一次模型调用生成带引用的答案，按段流式返回。</li>
+<li>记录证据集合、角色/提示词版本、耗时、模型用量和答案状态。摘要、统计和反馈归因进入异步任务。</li>
+</ol>
+<p>索引按领域与版本隔离。向量服务未批准时先建立关键词基线，并以检索评估决定是否满足验收；没有 embedding 不代表关键词一定足够。</p>
+<p>上下文按完整章节选取，不在必要步骤中途截断。问题可能对应多个流程时先明确对象；缺关键依据时说明缺什么，关联负责人。检索分数仅用于排序，不当作答案真实概率。</p>
+<h3>4.2 复杂问题与反馈分析</h3>
+<p>跨页面解释或普通链路证据不足时，允许 Pi 调用受限工具：<code>searchPublishedKnowledge</code>、<code>readPublishedPage</code>、<code>getRelatedPages</code>。工具的领域、版本由服务端注入，模型不能自行更改。</p>
+<p>首版默认最多 2 次模型调用、1 轮补充读取，由 AgentRunner 在代码中执行调用计数、deadline 和取消，不仅写在提示词里；超出预算转为明确追问或反馈事项。普通问题不能为了掩盖超时而临时标为复杂问题。反馈分析是独立异步作业，允许更长预算，按工单显示进度。</p>
+<p>不向普通问答实例开放 shell、任意网络访问、源文件写入或发布工具。提交反馈属于明确用户操作；发布权限由业务服务核验，不交给模型判断。</p>
+<h3>4.3 答案结构</h3>
+<p>业务顾问默认回答：适用条件、准备清单、操作步骤、协作岗位、完成标准。技术顾问在相同事实基础上补充配置含义、依赖及排查依据。角色切换不会改变事实优先级或知识权限。</p>
+<p>企微显示可执行的简洁答案、来源摘要与网页链接；网页展示完整清单、版本化引用及反馈入口。详细解释可追问，但不得为减少输出时间省略前置条件和关键步骤。</p>
+<p>引用标识由知识服务生成，只允许链接到本次实际取回的版本化页面。引用存在不等于事实正确，仍需离线人工评估回答是否受证据支持。来源冲突且未有负责人裁决时，指出冲突并进入反馈，不替专家决定。</p>
+<p>流式采用内部结构化分段协议，模型输出短内容块，每块包含 <code>type、text、evidence_ids</code>。服务端接收完整块后，检查类型、引用是否属于本次证据集、版本是否有效，再转换为企微文本/网页事件；不是把原始 token 直接透传。事实/操作块必须有引用，澄清块单独标型；引用未闭合不外发。首块建议上限 256 个生成 tokens，缓冲硬上限 512 tokens，整答初始预算 1,500 tokens，均为阶段 0 待调参数。</p>
+<p>无效引用、协议无法解析、缓冲超限或必要步骤不能在预算内完整输出时，停止未校验块并将答案标为不完整/失败，给出明确提示与已验证来源入口；不自动把无引用正文先发出，也不在快速链路增加第二次模型“修复”。已发有效段仍保留，但整答不计成功。预算是否足够由真实长流程样本验证，不通过就调整模型、协议或容量，不靠截断步骤满足时延。</p>
+</section><section class="document-section" id="section-5"><h2>5. 身份、角色与记忆</h2>
+<h3>5.1 身份与会话</h3>
+<p>企业微信身份与网页 SSO 映射到同一公司用户 ID；未能验证映射时，不合并个人历史。每次读写校验租户与领域访问权限。同领域业务和科技用户可看同一套知识，但审核、发布权限单独授权。</p>
+<p>默认群聊上下文按 <code>(tenant, domain, chat, user, conversation)</code> 隔离。群内发送知识答案前还必须满足群级受众规则：管理员登记允许使用该领域知识的内部群；采用群成员与领域访问范围核验，或经负责人确认、成员变更受控的专用群。成员资格无法确认、出现未授权成员或外部群时不在群内输出知识答案，提示到认证后的网页或本人单聊继续。首版无法接收成员变化事件时必须采用成员变更受控的专用群，不能只依赖历史白名单。个人会话历史不因用户在群里提问而自动带入；偏好仅影响风格，不暴露偏好记录本身。</p>
+<p>群里引用某条 bot 答案时，只允许读取该群已展示且当前领域仍可访问的公开答案部分，不导入原提问者的个人上下文。网页可以选择继续本人已有会话。新话题/重置会话生成新 ID；首版建议 24 小时不活跃后新开会话，该时间为可配置默认值。</p>
+<p>相同会话串行提交轮次，使用持久化消息序号和版本检查避免交叉覆盖；不同用户请求并发。企微回调以平台消息 ID 去重，重试不重复生成答案、不重复提交反馈。Pi 实例不能跨用户共享可变会话状态。</p>
+<h3>5.2 个人偏好</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>范围</th>
+<th>字段示例</th>
+<th>保存规则</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全局</td>
+<td>语言、回答长短、解释深浅</td>
+<td>经用户明确设置或明确要求记住</td>
+</tr>
+<tr>
+<td>领域</td>
+<td>默认业务/技术顾问、常用渠道</td>
+<td>只在对应领域生效</td>
+</tr>
+</tbody></table></div>
+<p>偏好存结构化字段，不把自由文本长期注入系统指令。用户可通过网页或明确命令查看、修改、删除；当前请求的明确要求优先于已保存偏好。岗位信息如来自企业目录应注明来源，个人选择的回答角色与发布权限分开。</p>
+<p>首版不自动从日常聊天推断并保存代理商、客户、策略、完成进度等事实，不建立跨会话的业务任务记忆。当前会话保留最近消息和必要摘要；默认上下文预算上限建议 12k tokens，须按实际模型配置，必要流程证据优先于旧聊天。所有聊天内容作为不可信输入，不覆盖已发布知识。</p>
+<p>偏好由用户删除时清除相应缓存。会话内容建议默认保留 30 天、发布与复核记录另设保留期；这是待公司政策确认的实现默认值，未确认前不视为既有制度。</p>
+</section><section class="document-section" id="section-6"><h2>6. 反馈与知识改进闭环</h2>
+<p>企微支持简短反馈，网页支持补材料、查看差异和复核。企业微信 SDK 文档列出流式消息、卡片以及反馈事件能力；具体当前租户可用能力需联调。[S4]</p>
+<p>反馈一经接受即持久化，返回工单 ID。工单绑定原问题、answer ID、引用页及 release ID、用户角色、原因、补充证据。重复问题可合并，但保留各反馈者及通知关系。</p>
+<p>状态：<code>submitted → triaged → needs_evidence / draft → reviewing → accepted → validating → released → closed</code>，另有 <code>rejected/duplicate</code>，均记录原因。<code>accepted</code> 只代表复核通过，不代表已经上线。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>原因</th>
+<th>处理方向</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>知识错误/过时</td>
+<td>修改 Wiki 内容并复核</td>
+</tr>
+<tr>
+<td>知识存在但没有找到</td>
+<td>修正别名、检索、排序或内容组织</td>
+</tr>
+<tr>
+<td>引用正确但回答遗漏</td>
+<td>修正上下文组织、生成规则与评估</td>
+</tr>
+<tr>
+<td>不易理解</td>
+<td>修正角色表达，补示例或术语页</td>
+</tr>
+<tr>
+<td>缺少知识</td>
+<td>指定负责人补充，收集证据</td>
+</tr>
+</tbody></table></div>
+<p>模型分析结果只作为候选分类和修订草稿。用户可修改草稿与补充证据，科技负责人最终确认。</p>
+<p>首版采用维护者触发的导出与应用，不做无人值守双向同步。每个工作区指定一位发布维护者；导出/写回时暂停 llm_wiki 导入和编辑，复制选定内容到暂存区，比较复制前后的逐文件哈希与目录清单，有变化就放弃本次快照。不要假设本框架文件锁能阻止桌面应用写文件。</p>
+<p>反馈修订携带 <code>base_content_hash</code>，应用前检测原文是否已被改动；有冲突交维护者解决，不覆盖新内容。修订以版本化的“专家更正说明”追加到 llm_wiki 的维护原料中，记录替代的旧结论、适用范围与负责人，再更新关联 Wiki 页面；原始导入材料保持可追溯，不静默篡改历史来源。之后重新导入不能把更正记录丢弃；发布校验按更正记录关联页检查是否发生回退，冲突阻止激活并要求复核。</p>
+<p>首版至少人工确认更正记录与生成页一致，不宣称自动语义检查能保证发现所有回退。这个写回适配属于本框架开发，不宣称 llm_wiki 原生提供网页远程修订 API。修订回到唯一维护源后重新提交快照，复核记录必须绑定最终实际发布内容。若无法暂停工作区写入，应使用不再变化的人工导出包；不能直接将正在变化的目录标为已审核快照。</p>
+<p>候选版本先回测原问题和相关问题，再激活；发布成功后通知反馈者并关闭工单。通知失败单独重试，不回滚知识版本。严重问题可以先撤回知识，再补齐修订。</p>
+<p>检索和提示词修复也要带版本、跑同一批问题并记录结果；它们不一定需要修改 Wiki。回归题自动生成后由负责人核对，预期答案不能只由被测模型自行判定。</p>
+</section><section class="document-section" id="section-7"><h2>7. 响应速度与容量</h2>
+<h3>7.1 已确认 SLO 与测量口径</h3>
+<p>普通流程问答同时报告 P95 首段和完整回答时间，正式验收采用更严格的联合口径：至少 95% 的普通请求同时满足首段有用内容 ≤ 3 秒、完整回答 ≤ 10 秒且回答成功。分母为该负载档位下全部普通问答请求，排队超限、服务错误、超时和系统中断均不得从分母移除。用户明确取消的请求单独报告，并在原始总量中保留；不能由系统自动取消来规避失败统计。</p>
+<p>首段有用内容必须包含与问题有关的实质性答案，不把“正在思考”、错误提示计入。必要澄清和知识缺口回复作为单独的交互类型报告，其判定规则在测试前固定，不能用快速拒答代替普通流程回答来达标。真实端到端试点同时验证用户感知延迟。</p>
+<p>计时从平台入口接受请求开始，包含排队、身份处理、检索、模型、段落检查和发送等待。另记录渠道可观测的发送成功时间；企微客户端真实显示延迟通过试点端到端抽样测量，不能仅凭服务端发送成功声称客户端达标。</p>
+<p>普通/复杂问题分类规则由发布前测试集及线上固定规则决定；超时不能事后换类别。无答案请求单独统计，不能用快速拒答改善“有效解决”的指标。被拒绝、超时、模型错误和中断都计入失败率。</p>
+<p>初始性能预算（工程假设，非实测）：入口与排队 0.2s，读取上下文及检索 0.6s，模型首段生成 1.8s，检查与渠道发送 0.4s。合计只是定位瓶颈的预算，分段 P95 不能简单相加当作端到端 P95。</p>
+<h3>7.2 降低延迟的措施</h3>
+<ul>
+<li>普通问题一次生成，角色配置和个人偏好直接读取，不额外让模型分类角色。</li>
+<li>首版不启用跨用户生成答案缓存；缓存已发布页面、索引和查询结果。仅对没有使用个人会话信息的独立查询共享检索缓存，键包含租户、领域、版本、检索配置和完整有效检索输入。使用会话实体的追问要么不缓存，要么加入用户与会话范围；不得仅以“下一步呢”等当前问句跨人命中。禁止缓存拼入个人会话后的上下文供他人使用。</li>
+<li>在线模型与发布/反馈 worker 使用独立并发配额，防止后台导入占满公司模型服务。</li>
+<li>根据负载设置有界队列、每用户并发限制和领域公平调度；队列等待计入延迟。超载时明确提示并记录失败，不无限等待。</li>
+<li>限制不必要解释长度，超长流程在网页完整展示；任何摘要仍要保留关键依赖和完整清单入口。</li>
+<li>使用客户端取消、服务端 deadline 与模型请求取消；流式断开后标记答案不完整，可通过 answer ID 查看最终状态，不把半截答案当成功。</li>
+</ul>
+<h3>7.3 验证负载</h3>
+<p>用户数、峰值并发、知识规模尚未确认。建议首轮按 3 个领域、每领域 500 页以内，以及 1/5/10/20 个并发问答逐级测量，以取得容量曲线；这些是测试档位，不是承诺容量。</p>
+<p>分别测冷缓存、热缓存、无答案、长流程、群聊并发及知识发布期间；普通问题至少采集 1,000 次请求分布，报告 P50/P95/P99、联合达标率、失败率、token 用量、公司模型排队时间和端到端延迟。企微入口请求的完整回答时间取网页完整答案 ready 与企微最终正文交付两个事件中的较晚者；网页入口请求只等待网页完整结果交付，不额外向企微推送。仅发送跳转链接不算完整回答。原流程页面本身可提前查看，但不能把已有原文页面可访问等同于个性化回答已经生成。</p>
+<p>最终承诺容量必须绑定模型版本、配额、知识规模、输出长度和并发数；在尚未实测时不承诺 20 并发满足 SLO。测试档位可用样本数据模拟，不要求首版真实上线三个业务领域。</p>
+</section><section class="document-section" id="section-8"><h2>8. 数据与关键接口</h2>
+<p>所有业务表带租户范围，领域数据带 <code>domain_id</code>；数据库唯一键和服务查询共同约束，客户端不能覆盖这些字段。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>数据对象</th>
+<th>关键内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Domain / BotBinding</td>
+<td>领域、可信知识入口、bot 标识、访问范围、负责人、角色模板版本</td>
+</tr>
+<tr>
+<td>KnowledgeRelease / PageRevision</td>
+<td>发布状态、内容哈希、来源、索引版本、复核记录、active 指针</td>
+</tr>
+<tr>
+<td>Conversation / Turn / Answer</td>
+<td>用户与会话边界、消息序号、角色、知识版本、引用、完成状态、耗时</td>
+</tr>
+<tr>
+<td>UserPreference</td>
+<td>用户、全局/领域范围、白名单字段、来源及更新时间</td>
+</tr>
+<tr>
+<td>Feedback / Revision</td>
+<td>原答案、证据、处理状态、负责人、基线哈希、目标版本</td>
+</tr>
+<tr>
+<td>EvaluationCase / Run</td>
+<td>标准依据、必要步骤、禁止结论、领域/角色、版本及测量结果</td>
+</tr>
+<tr>
+<td>Outbox / Job</td>
+<td>幂等键、重试次数、下一次运行时间、失败原因</td>
+</tr>
+</tbody></table></div>
+<p>拟议业务接口（非上游原生接口）：</p>
+<ul>
+<li><code>POST /domains</code>：先创建 pending 领域及负责人、访问范围，不要求已有发布入口；仅管理员可用。</li>
+<li><code>POST /bot-bindings</code>：使用发布入口解析并校验既有领域，为其绑定 bot，不重复创建领域。</li>
+<li><code>POST /answers</code>：提交问题及本人会话，服务端确定领域，返回 answer ID 和流式事件。</li>
+<li><code>GET /answers/{id}</code>：获取本人回答，或已经投递到本人获准加入群中的公共答案部分；不得以“同领域可读”开放另一人的私有问答与上下文，引用链接另查领域访问范围。</li>
+<li><code>GET/PATCH/DELETE /me/preferences</code>：读取、更改、清除个人偏好。</li>
+<li><code>POST /answers/{id}/feedback</code>：反馈与补证据，接受幂等键。</li>
+<li><code>POST /revisions/{id}/review</code>：复核具体内容哈希；审核者身份由服务端验证。</li>
+<li><code>POST /releases/{id}/activate</code>：全部检查通过后激活；通常由发布 worker 调用。</li>
+<li><code>POST /releases/{id}/revoke</code>：撤回失效版本，通知缓存、问答与引用展示层。</li>
+</ul>
+<p>发布入口仅允许配置中的公司知识主机，校验下载大小、路径和哈希；不让外部提供的 Wiki 地址变成任意内网访问入口。内容与用户输入始终视为数据，不能改变工具权限或系统指令。</p>
+</section><section class="document-section" id="section-9"><h2>9. 实施顺序与验收</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>交付物</th>
+<th>完成条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0：兼容性验证</td>
+<td>Pi 对公司模型的调用、取消和结构化分段；企微联调；工作区快照往返</td>
+<td>验证代表性输出长度下的首段/整答基线、群范围映射、快照导出与纠错再次导入；确定固定上游版本</td>
+</tr>
+<tr>
+<td>1：广告知识基线</td>
+<td>三类流程、责任人、发布快照、30–50 条人工核对的真实试题</td>
+<td>固定流程完整；条件分支已记录；包含无答案和旧版本问题</td>
+</tr>
+<tr>
+<td>2：问答首版</td>
+<td>企业微信/网页、两种角色、个人偏好、一次生成链路</td>
+<td>跨端身份正确；角色事实一致；压测取得达标容量</td>
+</tr>
+<tr>
+<td>3：闭环</td>
+<td>反馈、草稿、复核、写回、候选评估、激活和通知</td>
+<td>一次真实纠错从反馈到发布完成；可撤回；能追溯原引用</td>
+</tr>
+<tr>
+<td>4：通用性验证</td>
+<td>第二个非广告领域接入</td>
+<td>不改核心代码，只配置发布入口、角色模板和 bot 绑定</td>
+</tr>
+</tbody></table></div>
+<p>上线检查：</p>
+<ul>
+<li>试题中必要前置条件与关键步骤不能遗漏，不能编造账户、授权或渠道规则；发现关键错误先修复再上线。</li>
+<li>每个流程答案可追溯至实际读取的已发布版本；无法回答时明确说明。</li>
+<li>业务与科技版事实一致，区别只在定位与解释；新会话不带入旧任务事实。</li>
+<li>不同领域、用户及群聊会话不串用上下文，重试不产生重复反馈或重复发布。未批准群、群成员范围变化、引用他人答案、直接访问他人 answer ID 均验证受众与历史访问边界。</li>
+<li>复核后源内容改变、两人同时修订、构建失败、撤回、索引延迟与渠道断线均有验证场景；两个旧基线候选交错发布、评估后撤回依据不得重新激活旧错误。</li>
+<li>旧资料重新导入后仍保留专家更正依据，原问题不复发；快照包含改名、链接、来源摘录、静态附件时可以正确导出和读取。</li>
+<li>长首段、引用只在末尾、伪造引用、半截流、两类超时不重叠、网页结果晚于企微摘要，均得到一致的失败与联合SLO统计。</li>
+<li>错误知识修复后的原问题及相邻问题通过回归，历史评估样本不能被错误新版本重新标成正确。</li>
+</ul>
+<p>效果指标：业务自行完成操作的比例由明确反馈与抽样访谈确认；专家重复答疑量和耗时与试点前对比；反馈跟踪处理耗时、复发率、未解决积压。未继续提问、点赞或反馈关闭不能直接视为业务已解决。</p>
+</section><section class="document-section" id="section-10"><h2>10. 需在实现前验证的事项</h2>
+<p>以下不阻止设计，但会影响落地配置与承诺：公司模型 API 协议、流式/工具调用/取消能力及配额；是否有已批准 embedding；实际 llm_wiki 版本和内容目录样本；企微租户机器人能力；身份映射；人数与峰值并发；公司数据保留制度。</p>
+<p>如果公司模型无法达到首段预算，先分解模型排队、输入长度和生成耗时，再调整公司允许的模型或输出策略。不得以提前输出空话来声称达标。</p>
+<p>本文的容量、保留期、上下文预算、调用次数是初始工程配置建议，不是已经获得的业务约束。依赖固定到经验证的版本，升级需重新跑接口与质量回归。</p>
+</section><section class="document-section" id="section-11"><h2>11. 主要依据</h2>
+<p>资料查阅日期：2026-09-25；下列链接可能随上游变更，实施时应固定已验证提交与包版本。本文发布协议、审批工作流、偏好存储和多领域边界为设计建议，不是上游已经提供的功能。</p>
+<ul>
+<li><a href="https://github.com/nashsu/llm_wiki/blob/main/mcp-server/README.md">S1：llm_wiki MCP 接口及桌面依赖</a></li>
+<li><a href="https://github.com/earendil-works/pi/blob/main/packages/agent/README.md">S2：Pi Agent Core：工具、状态、事件与上下文处理</a></li>
+<li><a href="https://github.com/earendil-works/pi/blob/main/packages/ai/README.md">S3：Pi 模型调用层</a></li>
+<li><a href="https://github.com/WecomTeam/aibot-node-sdk">S4：企业微信智能机器人 SDK</a></li>
+<li><a href="https://github.com/nashsu/llm_wiki">S5：llm_wiki 项目与知识组织</a></li>
+</ul>
+</section></article>
+<section id="review" class="review-section"><div class="eyebrow">INDEPENDENT REVIEW</div><h2>高级模型评审与修订</h2><div class="review-summary"><p>GPT-6 Astra 对设计做了独立评审及聚焦复查。首轮提出 2 项 P1、4 项 P2，修订已覆盖对应机制；复查提出的两处文字一致性问题也已修正。设计可作为兼容性验证与首版实施基线，接口能力和性能仍需实测。</p><div class="review-grade">遗留高优先级问题<b>0 项 P1</b></div></div><div class="table-wrap"><table class="review-table"><thead><tr><th>编号</th><th>评审重点</th><th>修订结果</th><th>状态</th></tr></thead><tbody><tr><td>R1 <span class="severity">P1</span></td><td>群聊受众授权</td><td>增加群级受众规则，禁止继承他人的私有会话。</td><td class="fixed">已修订</td></tr><tr><td>R2 <span class="severity">P1</span></td><td>并发发布覆盖修复</td><td>领域内串行激活，检查基线、审批、依赖和评估版本。</td><td class="fixed">已修订</td></tr><tr><td>R3 <span class="severity">P2</span></td><td>发布助手契约</td><td>先建 pending 领域；手动快照；明确格式与单写者维护窗口。</td><td class="fixed">已修订</td></tr><tr><td>R4 <span class="severity">P2</span></td><td>纠错依据持续性</td><td>更正依据回到维护源，重导旧资料后仍须通过回归。</td><td class="fixed">已修订</td></tr><tr><td>R5 <span class="severity">P2</span></td><td>流式引用与速度口径</td><td>内容块校验；以同一请求同时满足 3 秒 / 10 秒计联合达标。</td><td class="fixed">已修订</td></tr><tr><td>R6 <span class="severity">P2</span></td><td>知识撤回边界</td><td>整版本撤回、发送前检查；企微另发更正，不承诺抹除旧消息。</td><td class="fixed">已修订</td></tr></tbody></table></div><div class="brief-note"><strong>复查后的两处澄清：</strong>领域先创建为 pending，发布地址用于绑定既有领域；网页问答不自动推送企微，各入口分别定义回答完成时间。</div><details class="review-details"><summary>阅读聚焦复查原文<span>对 v0.2 的核对、结论与验证边界</span></summary><div class="review-content"><p>复查日期：2026-09-25。对象：<code>work/design-v0.2.md</code>，最终核对版本为 328 行。仅复查 v0.1 报告的 R1–R6 及修订引起的相邻段落一致性；包含对最后两处文字修正的再次核对。未修改设计正文，未执行应用代码，未访问公司数据，也未重新开展全网研究。</p>
+<p><strong>结论：可以作为阶段 0 与首版实施的设计基线。R1–R6 均已在设计层面解决，没有遗留 P1，也没有本次聚焦范围内未关闭的设计阻断。</strong> 初次复查发现的两处 P2 文本契约不一致已由主设计者修正，并经本评审者再次核对关闭。性能、企业接口和实际工作区行为仍须阶段 0 验证，不能据本次设计通过声称已经达标或可直接上线。</p>
+<h2>R1–R6 逐项结论</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>项目</th>
+<th>状态</th>
+<th>修订依据及判断</th>
+<th>留到验证阶段的事项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R1 群聊受众与私有会话</td>
+<td><strong>已解决</strong></td>
+<td>§5.1 L181–187 增加群级受众条件、未确认成员时停止群内知识输出、无法获取成员事件时采用成员变更受控的专用群；引用只继承群内已公开部分。§8 L280 明确同领域可读不等于可读他人私有回答；§9 L304 纳入边界用例。该方案允许受控群的运营约束作为首版选择，不再假定检查提问者就等于检查所有接收者。</td>
+<td>公司身份映射；群成员范围能否通过接口核验；受控专用群的加入权限和变更流程是否真实可执行。若这些条件不能成立，使用文中已有的认证网页/单聊路径，不因此重新设计问答后端。</td>
+</tr>
+<tr>
+<td>R2 并发发布与旧修复回退</td>
+<td><strong>已解决</strong></td>
+<td>§3.4 L130–136 补齐领域串行激活、父版本 CAS、ready/审批/依赖有效性检查，旧基线失败后重新合并与评估；内容、索引、配置、评估绑定。撤回会使依赖失效依据的候选不可用，请求读取权威指针，未准备好的副本不接流量。§9 L305 覆盖交错激活与评估后撤回场景。</td>
+<td>数据库事务与 worker 重试的实现验证；确认同一验证发布单元被请求实际使用，不能在激活后通过可变配置另行替换。显式回滚仍要采用当前指针的并发检查和有效性检查，不能直接无条件写 active。</td>
+</tr>
+<tr>
+<td>R3 地址接入及助手协议</td>
+<td><strong>已解决</strong></td>
+<td>§3.2 L72–78 已明确 pending 领域先创建、领域凭据、手动助手、离线状态；§3.3 L111–124 规定文件、链接、ID、来源/附件清单及幂等提交；§6 L220–224 使用实际维护窗口与不可变导出包，避免把助手文件锁或一次 hash 检查当成多写者事务。§3.1 L66 与 §8 L277–278 最后已统一为先建 pending、再由入口绑定既有领域，见 C1 关闭记录。</td>
+<td>在固定 llm_wiki 版本上走通暂停编辑/导入、导出、改名、引用、修订及再次导出；验证助手的安装和手动操作成本。此处不要求新增常驻同步服务。</td>
+</tr>
+<tr>
+<td>R4 更正依据持续沉淀</td>
+<td><strong>已解决</strong></td>
+<td>§6 L222–224 将版本化专家更正说明加入维护原料，关联被替代结论及适用范围，并要求生成页人工确认与更正依据一致；回退冲突阻止发布。§9 L306 增加旧资料重新导入后的回测。没有把自动语义判断当成首版可靠保证。</td>
+<td>用真实样本确认更正记录不会因再次导入被丢弃，原问题回归能拦住复发。人工确认成本也应在试点记录，暂不引入额外评审 Agent。</td>
+</tr>
+<tr>
+<td>R5 流式门禁及联合 SLO</td>
+<td><strong>已解决</strong></td>
+<td>§4.3 L173–175 规定结构化短块、引用校验、缓冲上限和失败处理，不再透传未校验内容或用第二次模型调用掩盖修复成本。§7.1 L234–240 定义联合达标、失败分母及独立澄清/无依据统计；§7.3 L257 要求完整答案就绪，并已按企微/网页入口分别定义完成事件，见 C2 关闭记录。</td>
+<td>公司模型的分段协议遵循率、首块/完整输出耗时、取消能力；长流程在预算内的完整性；代表性并发下的联合达标率。256/512/1,500 tokens 均仍是可调工程假设，不是已证实适用的模型参数。</td>
+</tr>
+<tr>
+<td>R6 撤回与历史企微消息</td>
+<td><strong>已解决</strong></td>
+<td>§3.4 L134–136 将紧急撤回置于固定版本之上；新检索及段落发送前检查，状态不能验证即停止；收敛为整版本撤回。网页显示失效，企微另发更正，承认已交付内容不能保证消失，也不承诺跨系统原子撤销。保留撤回传播耗时的专项测量。</td>
+<td>联调检查到发送间的在途消息、取消传播时间、更正通知定位与幂等重试。上线前给传播指标确定可接受阈值；这一数字不能由设计评审凭空证明。</td>
+</tr>
+</tbody></table></div>
+<h2>最后两处一致性问题的关闭记录</h2>
+<h3>C1 · 原 P2，已关闭：pending 领域创建与入口绑定顺序</h3>
+<p><strong>最终核对位置</strong>：§3.1 L66；§3.2 L72–76；§8 L277–278。</p>
+<p>初次复查时，§3.2 已规定先创建 pending 领域，再提交快照并生成 URL；§3.1 和 <code>POST /domains</code> 仍保留按发布入口创建领域的旧表述，可能造成创建顺序循环或重复领域实例。</p>
+<p><strong>已核对修正</strong>：§3.1 现为查找并绑定此前已创建的领域；<code>POST /domains</code> 创建 pending 领域，不要求已有入口；新增 <code>POST /bot-bindings</code> 解析并校验入口对应的既有领域，不重复创建。接口与步骤顺序一致。</p>
+<p><strong>关闭结论</strong>：已解决。新增绑定接口只是把原本已有的绑定动作表述清楚，没有扩张产品范围。</p>
+<h3>C2 · 原 P2，已关闭：完整回答时间按实际请求入口计算</h3>
+<p><strong>最终核对位置</strong>：§7.3 L257；对照 §4.3 L169 与 §8 L279。</p>
+<p>初次复查时，“网页完整答案 ready 和企微最终正文交付两个事件中的较晚者”没有限定入口，可能让网页请求等待不存在的企微交付，或被误实现为每次网页问答都额外推送企微。</p>
+<p><strong>已核对修正</strong>：§7.3 现明确企微入口取两个事件中的较晚者，网页入口只等待网页完整结果交付，不额外向企微推送；完整答案不能仅由跳转链接或原文可访问替代的要求保留。</p>
+<p><strong>关闭结论</strong>：已解决。实施时按入口报告统计即可，不需新增跨渠道推送功能。</p>
+<h2>新增复杂度与相邻一致性</h2>
+<p>修订没有重新引入业务任务进度、跨人私有会话、多 Agent 协作、无人值守双向同步或任意 Wiki 爬取。手动助手、维护窗口、整版本撤回都降低了首版复杂度；专家更正记录属于知识维护依据，不属于个人任务记忆。领域/会话范围明确后的检索缓存规则（§7.2 L247）也解决了“下一步呢”跨用户错误命中的歧义。</p>
+<p>发布单元绑定检索与角色提示词配置合理，但实现时应复用同一个发布/评估流程，不为这些配置再建立一套独立审批平台。首版人工复核更正依据已足够，不需要将回退语义检查扩展为新的自动评审系统。C1、C2 关闭后，未发现修订带来的剩余设计阻断或必须扩张首版范围的事项。</p>
+<h2>基线通过与验证边界</h2>
+<ul>
+<li><strong>阶段 0：可以开始。</strong> 公司模型/Pi 结构化流式与取消、企微身份/群范围映射、工作区快照往返的验证目标已经具体。</li>
+<li><strong>首版实施：可以据此推进。</strong> 最后两处局部契约修正已核对，可冻结相应接口与指标定义；无须进行另一轮全量架构评审。</li>
+<li><strong>上线及容量承诺：尚未通过。</strong> 必须有代表性流程、长流程和负载测试，以及授权、并发发布、纠错重导和撤回的实际证据。若阶段 0 发现能力不匹配，应按已有失败路径或缩减部署范围调整，不能用设计文档的承诺替代验证。</li>
+</ul>
+<p>本报告的“已解决”指设计层面的机制和责任已经闭合，不表示代码、企业权限、模型性能或 llm_wiki 操作行为已被验证。</p>
+</div></details><details class="review-details"><summary>阅读首轮独立评审原文<span>触发场景、影响与最小修正；其中行号对应 v0.1 初稿</span></summary><div class="review-content"><p>评审日期：2026-09-25。评审对象：<code>work/design-v0.1.md</code>，共 291 行；下述行号均引用该版本。未修改设计正文，未运行应用代码，未访问公司系统或数据。资料仅核对上游官方仓库文档；没有进行接口、租户能力或性能实测。</p>
+<p>结论：方向正确，已具备启动阶段 0 兼容性验证及广告知识整理的条件；尚不具备直接冻结整套实现并承诺上线的条件。应先补齐两项 P1：群聊受众授权，以及并发发布的基线检查。四项 P2 可在 v0.2 中通过小范围契约补充解决，不需要另起架构。</p>
+<h2>分级发现</h2>
+<h3>R1 · P1：群聊隔离保护了上下文，没有保护答案的全部接收者</h3>
+<ul>
+<li><strong>正文依据</strong>：§4.1 L125–126 按 bot 确定领域并识别用户；§5.1 L156–160 规定每次读写检查领域权限和按用户隔离群聊上下文；§8 L244 允许“有权访问的共享回答”。没有定义整群获得领域答案的授权条件。</li>
+<li><strong>触发场景</strong>：拥有广告领域权限的 A 在含无此权限成员 B 的群中提问。后端正确校验 A 并向该群流式发送广告知识，B 无需通过任何服务端读权限检查即可看到答案。另一条路径是引用其他人的 bot 回答后，把该人的隐藏会话也作为继续回答的上下文；当前“显式继续该问题”没有限制继承哪些内容。</li>
+<li><strong>影响</strong>：每领域 bot、数据库过滤和按用户会话隔离都正确时，仍可能跨领域泄露知识或会话信息。这是已写明领域可见范围的直接缺口。</li>
+<li><strong>最小修正</strong>：单独定义 <code>chat audience</code> 授权。首版仅在已批准且成员范围符合领域权限的群中输出知识；无法可靠确认群范围时，仅返回经身份验证的网页/单聊入口，不在群里返回知识正文。明确群聊只能继承该群已公开的被引用答案及当前提问者在该群的会话，不能沿 answer ID 读取另一人的私有历史。<code>shared answer</code> 的授权不得仅等于“同领域可读”。把群成员变更后的处理写成运营约束或可执行的重新校验机制。</li>
+<li><strong>验收</strong>：有权用户在未批准群中提问；批准群加入无权成员；引用另一用户答案；另一用户尝试直接读取私有 answer ID，均有确定结果。企业微信 SDK 消息结构提供发送者与群 ID，并不意味着本应用已获得整群成员授权证明。<a href="https://github.com/WecomTeam/aibot-node-sdk#-%E6%B6%88%E6%81%AF%E5%B8%A7%E7%BB%93%E6%9E%84">官方 SDK</a></li>
+</ul>
+<h3>R2 · P1：原子切换指针不能阻止较旧候选覆盖较新的修复</h3>
+<ul>
+<li><strong>正文依据</strong>：§3.3 L87 有 <code>parent_release_id</code>；§3.4 L111–115 只规定候选检查通过后事务切换 <code>active_release_id</code>；§6 L193 的 <code>base_content_hash</code> 检查针对维护源写回，不覆盖候选激活的并发问题。</li>
+<li><strong>触发场景</strong>：候选 A、B 都基于 r1。B 包含紧急纠错并先发布为 r2；A 构建较慢，稍后完成评估并将 active 切为自己，其完整快照仍含 r1 的错误内容。或者候选评估完成后，其依据被撤回，但排队中的激活任务仍然执行。</li>
+<li><strong>影响</strong>：所有内容/索引本身均完整，指针切换也原子，仍会自动回退知识修复；这违反 L115 不自动恢复已知错误内容的目标。</li>
+<li><strong>最小修正</strong>：首版按领域串行激活，并在同一事务内校验 <code>expected_active_release_id == current_active_release_id</code>、候选仍为 ready、审批及依赖未失效，再更新指针。旧基线候选必须重新合并/重建/评估；不要静默采用最后完成者。撤回记录须让相关待激活候选失效。明确绑定不可变内容包、索引构建 ID、评估配置；检索参数或索引改变后重新评估。显式回滚作为有理由和权限的独立操作。</li>
+<li><strong>验收</strong>：交错完成两个基于同一版本的候选；评估后、激活前撤回依据；重复执行激活任务。每种情况都不能悄悄覆盖已上线的新修复。</li>
+</ul>
+<h3>R3 · P2：地址接入已诚实限定，但发布助手仍缺最小可实施契约</h3>
+<ul>
+<li><strong>正文依据</strong>：§3.1 L61–67 将地址定义为平台发布入口；§3.2 L71–76 先提交、审核和构建，再登记领域；§3.3 L103–107 要求稳定 ID、哈希与链接闭包；§6 L193 通过助手检查原文后应用修订。</li>
+<li><strong>触发场景</strong>：领域方只有一个 llm_wiki 工作区或普通地址；实施者必须自行决定助手如何获取源文件、建立领域/负责人、解析 wikilink、识别改名、传输来源摘录、检测导出中变化及应用修订。源文件在“检查 hash”与实际写入之间被 llm_wiki 自动维护改动时，仅前置 hash 检查仍可能覆盖新内容。</li>
+<li><strong>影响</strong>：“填地址”是最终消费接口，并未消除源工作区的部署和维护成本；目前还不能验收“第二领域不改代码”。并发写回的“不覆盖新内容”也尚没有机制保证。这里是待决契约，不是已证实上游不支持导出。</li>
+<li><strong>最小修正</strong>：首版选定一种接入方式并附一页协议：先创建 pending 领域及指定科技审核人，再配对一个受控工作区助手；助手提交不可变快照，平台生成 URL 后启用。说明助手由谁运行、手动还是定时提交、离线时如何显示未同步。规定支持的 Markdown/frontmatter/wikilink 子集、稳定 ID 映射、来源摘录与附件的哈希清单。快照必须来自固定基线；写回采用有实际互斥保证的单写者维护窗口，做不到时首版只导出修订供维护者合并并重新快照，不承诺自动覆盖式写入。不要把读一次 hash 当作比较并替换事务。</li>
+<li><strong>验收</strong>：用包含改名、链接、来源摘录、附件和并发源修改的小工作区，走完一次接入及纠错；交付一份助手安装/维护步骤，才能评估地址接入是否足够简单。</li>
+<li><strong>已核实边界</strong>：上游工作区使用 Markdown、frontmatter 和 wikilink，包含原材料、生成 Wiki 及内部状态；本地 MCP 依赖运行中的桌面应用。自建快照是合理方案，但其协议仍属于本框架。<a href="https://github.com/nashsu/llm_wiki#project-structure">llm_wiki 官方说明</a>、<a href="https://github.com/nashsu/llm_wiki/blob/main/mcp-server/README.md">MCP 官方说明</a></li>
+</ul>
+<h3>R4 · P2：修订只回写生成 Wiki，尚未规定如何避免旧原材料再次生成同一错误</h3>
+<ul>
+<li><strong>正文依据</strong>：§6 L185、L193–197 将知识纠错落在 Wiki 内容及回归；没有规定补充证据如何成为后续 llm_wiki 维护使用的依据，以及旧依据如何被标记为失效或被取代。</li>
+<li><strong>触发场景</strong>：用户补充证据，科技负责人修正“新增代理商所需材料”。之后 llm_wiki 重新导入仍含旧规定的原资料，或对同一主题重新生成页面，将刚修正的内容改回去。人工复核可能拦住再次发布，但会重复制造同一问题。</li>
+<li><strong>影响</strong>：在线发布边界没有被绕过，但知识飞轮不稳定，专家必须反复处理相同纠错，业务会看到修订迟迟不能稳定沉淀。</li>
+<li><strong>最小修正</strong>：每次事实纠错同时记录可维护的“更正依据”，关联被取代的来源及生效范围；不必修改不可变原件。让后续生成能够读取该更正依据，或至少在发布前依据永久回归题阻止复发。助手写回交付应同时包含 Wiki 变更和证据/来源关系，验收增加一次“旧资料重新导入后的回测”。普通措辞改进无需强行新增来源。</li>
+<li><strong>证据与不确定性</strong>：上游把原材料与 LLM 生成的 Wiki 区分为不同层。重新生成是否保留人工修订取决于实际版本与生成行为，本评审未实测，因此这是需要防护的明确触发场景，不是声称每次重导都会覆盖。<a href="https://github.com/nashsu/llm_wiki#what-we-kept-from-the-original">llm_wiki 官方架构说明</a></li>
+</ul>
+<h3>R5 · P2：流式引用门禁和 SLO 还缺能直接执行的成功/失败判定</h3>
+<ul>
+<li><strong>正文依据</strong>：§4.3 L150 按段缓冲校验引用；§7.1 L203–209 给出两个 P95 并单列失败率；§7.2 L217 允许超长流程在网页完整展示。</li>
+<li><strong>触发场景</strong>：模型首段很长、引用只出现在末尾，或者引用不存在。实现者不知道应继续缓冲、重试、丢弃还是先发送。另一个例子是 100 个普通请求中 5 个仅首段超时、另 5 个仅完成超时：两个单项均有 95% 达标，但同时达标只有 90%。若超时无完成时间而被排除出分位数，P95 还可能看起来很好。</li>
+<li><strong>影响</strong>：团队可能实现不一致的引用校验与首段统计；测试可以给出“两个 P95 达标”，却无法证明用户所需的同一请求体验。不能据此判断现有模型一定达不到 3/10 秒。</li>
+<li><strong>最小修正</strong>：定义确定的段落输出协议：事实/步骤段在发布前必须带本次证据集合中的引用标识，引用未闭合不外发；无引用的必要澄清单独标型；无效引用及缓冲超限进入明确的不完整/失败状态，不能把无引用正文当成功。给首段长度/缓冲与整答 token 预算设可测试的配置值，由阶段 0 实测调整，不加第二次在线模型核查。</li>
+<li><strong>SLO 最小口径</strong>：除 P50/P95/P99 外，主门禁记录 <code>同时首段≤3s且完整答案≤10s且未失败的普通请求数 / 已接受的合格普通请求数 ≥95%</code>；超时、生成错误、校验失败不得从分母消失。区分明确的用户主动取消与系统中断。固定长流程测试，并说明完成时间是网页完整结果 ready 还是仅企微摘要发完；不能把跳转入口出现当成完整答案就绪。必要澄清仍可计入有用首段，但应同时报告实际解答、澄清、无依据三类比例，防止快速追问稀释解答时延。</li>
+<li><strong>验收</strong>：长首段、末尾引用、伪造引用、半截流、两个超时群体不重叠、网页完整结果晚于企微摘要，均能得到一致且不能“美化”结果的统计。</li>
+</ul>
+<h3>R6 · P2：撤回承诺需按网页、在途生成和已发送企微消息分别限定</h3>
+<ul>
+<li><strong>正文依据</strong>：§3.4 L115 承诺立即取消在途生成、已发内容标记撤回；§8 L249 通过通知缓存、问答和展示层实现撤回。未定义撤回生效屏障，也未区分已完成企微文本与网页答案。</li>
+<li><strong>触发场景</strong>：撤回事件尚未到达某个 worker，它仍发送一个缓存好的段落；或错误答案已作为企微流式文本完成，平台随后试图把历史消息原地标为撤回。</li>
+<li><strong>影响</strong>：异步通知只能降低传播延迟，不能单独保证“立即不再发”；已完成消息能否改写也未得到上游能力确认。用户可能继续依赖错误历史文本。</li>
+<li><strong>最小修正</strong>：撤回事务先标记不可用并形成发送前可检查的禁用状态，所有新读取和后续段落发送都检查，异步通知用于加速终止；定义可测的停止发送时限，承认已经交付的内容不能收回。网页与引用页明确显示失效；企微首版采用另发更正消息及有效版本链接，重试可幂等。若未来证实可更新历史文本再增加能力。首版可以只支持整版本撤回，避免同时维护按页撤回覆盖层，严重错误期间给出无可用知识状态。</li>
+<li><strong>官方能力边界</strong>：已查 SDK 文档列出流式回复、主动发送及模板卡片更新；卡片更新关联特定回调时限，未证实能任意改写已完成的历史流式文本。此处不以“没有查到”断言整个企微平台绝不支持撤回。<a href="https://github.com/WecomTeam/aibot-node-sdk#updatetemplatecard-%E8%AF%A6%E7%BB%86%E8%AF%B4%E6%98%8E">企业微信官方 SDK</a></li>
+</ul>
+<h2>七项核查结果</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>核查项</th>
+<th>判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. 需求吻合及范围</td>
+<td>通过。三类广告流程、同域同权限双角色、只留偏好与当前会话、科技负责人复核均已体现；没有加入业务任务进度。反馈工单状态是修订过程状态，不等于用户排除的业务任务记忆。保留期、容量档位、12k 上下文均明确为建议值。</td>
+</tr>
+<tr>
+<td>2. llm_wiki 接入/发布</td>
+<td>方向可行，自建发布层边界诚实；须补 R2–R4。“只填地址”只对已经有发布助手和入口的领域成立，不能按字面宣称任意 llm_wiki 地址即接入。</td>
+</tr>
+<tr>
+<td>3. Pi 原生及自建</td>
+<td>区分正确。Pi 可提供模型适配、状态化 Agent、工具执行、事件及上下文钩子；身份、知识审批、持久化业务模型仍由本系统负责。Pi 支持自定义 provider 不等于已验证公司接口。应固定实际包版本，2 次调用预算由 AgentRunner 强制，而非只写提示词。<a href="https://github.com/earendil-works/pi/blob/main/packages/agent/README.md">Agent 官方文档</a>、<a href="https://github.com/earendil-works/pi/blob/main/packages/ai/README.md#custom-providers">模型层官方文档</a></td>
+</tr>
+<tr>
+<td>4. 隔离</td>
+<td>租户/领域、角色与审批权、个人偏好、可变 Agent、跨端身份大体充分；群聊受众存在 R1。缓存键的“规范化查询”应明确为加入会话实体后的完整有效检索输入，或此类检索不跨用户缓存，不能仅用“下一步呢”等当前问句。</td>
+</tr>
+<tr>
+<td>5. 流式与 SLO</td>
+<td>未伪称已验证，已考虑分段 P95 不能相加、负载与客户端延迟；执行契约需 R5，撤回边界需 R6。</td>
+</tr>
+<tr>
+<td>6. 飞轮与回归</td>
+<td>反馈分因、人工核对预期答案、原问题及相邻问题回测合理；需 R4。首版可用检索命中/引用校验自动检查，加科技负责人检查受影响答案，不必再建设独立多模型评审系统。</td>
+</tr>
+<tr>
+<td>7. 首版复杂度</td>
+<td>模块化单服务加 worker、关系数据库与不可变快照适中，没有必要引入微服务或额外 Agent。页面级撤回、自动冲突合并、自动保存推测偏好、通用远程 Wiki 抽取均可不做；第二领域是通用性验收，不需据测试档位真的先做三个领域。</td>
+</tr>
+</tbody></table></div>
+<h2>启动条件与仍未确认的事项</h2>
+<p>可以立即启动阶段 0 的只读/隔离样本兼容性验证，以及整理三类广告流程。阶段 0 不能只验“会调用”，至少交付一份真实工作区快照往返样本、公司模型流式与取消记录、首段/整答在代表性输出长度下的基线、企微 bot 类型与租户能力确认、身份与群范围的映射办法。</p>
+<p>在 R1、R2 被设计明确覆盖前，不建议把群聊与发布实现定稿。R3–R6 应进入 v0.2，按最小方案落地，不需要追加未要求的产品能力。</p>
+<p>尚未确认且本报告没有假定成立：公司模型协议/配额/延迟；企业微信租户的机器人、群成员校验和消息更新能力；实际 llm_wiki 版本及并发写入行为；知识规模、峰值负载、embedding 批准情况、保留政策。SLO 是否可达必须由代表性问题和负载实测决定。</p>
+<p>修订后应做聚焦复查：核查六项的契约是否闭合，而非再次扩张首版范围。通过该复查且阶段 0 的关键能力无阻断，才具备冻结首版实现方案的条件。</p>
+</div></details><p class="footer-note">本页是设计交付物，不是已实现产品。未访问公司系统或数据，未进行公司模型压测；评审发现与设计修订不代表上线验证已经完成。</p></section><footer class="ending"><span>领域知识 Bot · 设计基线 v0.2 · 2026-09-25</span><a href="#overview">回到总览 ↑</a></footer></main></div>
+<script>
+const navLinks=[...document.querySelectorAll('.sidebar nav a')];
+const targets=navLinks.map(a=>document.querySelector(a.getAttribute('href')));
+let pending=false;
+function updateNav(){let current=0;targets.forEach((el,i)=>{if(el&&el.getBoundingClientRect().top<160)current=i});navLinks.forEach((a,i)=>{a.classList.toggle('active',i===current);if(i===current)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});pending=false;}
+window.addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(updateNav)}},{passive:true});
+document.querySelector('.mobile-nav').addEventListener('change',e=>{location.hash=e.target.value});
+document.getElementById('print').addEventListener('click',()=>window.print());
+let closedDetails=[];window.addEventListener('beforeprint',()=>{closedDetails=[...document.querySelectorAll('details:not([open])')];closedDetails.forEach(x=>x.open=true)});window.addEventListener('afterprint',()=>closedDetails.forEach(x=>x.open=false));
+updateNav();
+</script></body></html>
