@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-26T10:07:43.455Z",
+  "node": "v24.13.0",
+  "sdk": "@wecom/aibot-node-sdk@1.0.7",
+  "scope": "One synthetic notice through the real dispatcher; no Wiki/model/production database or inbound processing",
+  "status": "failed",
+  "attempts": 1,
+  "delivery": {
+    "state": "failed",
+    "code": "WECOM_REJECTED_93006"
+  }
+}
