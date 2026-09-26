@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>wikiBot · 领域知识</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <a href="/">wikiBot</a><span>有依据的业务指导</span
+      ><button id="logout" hidden>退出</button>
+    </header>
+    <main>
+      <div id="error" role="alert" hidden></div>
+      <section id="login">
+        <h1>进入你的知识领域</h1>
+        <p>使用公司身份，查看获准使用的知识与本人工单。</p>
+        <a id="sso" href="/auth/login" hidden>公司账号登录</a>
+        <form id="token-login">
+          <label
+            >本地测试访问令牌<input
+              id="token"
+              type="password"
+              autocomplete="off"
+              required /></label
+          ><button>进入</button>
+        </form>
+      </section>
+      <section id="workspace" hidden>
+        <div class="toolbar">
+          <label>当前领域<select id="domain"></select></label
+          ><span id="identity"></span>
+        </div>
+        <nav>
+          <button data-view="ask">问答</button
+          ><button data-view="tickets">工单</button
+          ><button data-view="knowledge">知识</button
+          ><button data-view="admin" id="admin-nav" hidden>维护与发布</button>
+        </nav>
+        <section id="ask" class="view">
+          <h1>这次想了解什么？</h1>
+          <form id="question-form">
+            <label
+              >流程<select id="procedure">
+                <option value="">请选择</option>
+              </select></label
+            ><label
+              >问题<textarea
+                id="question"
+                required
+                placeholder="描述你要完成的事情"
+              ></textarea>
+            </label>
+            <div class="columns">
+              <label
+                >本次咨询对象<input
+                  id="object"
+                  placeholder="客户、策略或申请的名称" /></label
+              ><label
+                >回答形式<select id="mode">
+                  <option value="guidance">完整操作指导</option>
+                  <option value="explanation">术语或单步解释</option>
+                </select></label
+              >
+            </div>
+            <div id="inputs" class="columns"></div>
+            <div class="columns">
+              <label
+                >视角<select id="style">
+                  <option value="business">业务视角</option>
+                  <option value="technical">技术视角</option>
+                </select></label
+              ><label
+                >深度<select id="depth">
+                  <option value="beginner">入门</option>
+                  <option value="experienced">熟练</option>
+                </select></label
+              >
+            </div>
+            <label class="check"
+              ><input id="remember" type="checkbox" />保存为我的偏好</label
+            ><button>获取指导</button>
+          </form>
+          <article id="answer" aria-live="polite"></article>
+          <button id="cancel" hidden>停止生成</button>
+          <form id="feedback" hidden>
+            <label
+              >反馈说明<textarea id="feedback-text" required></textarea></label
+            ><button>针对这份答案登记问题</button>
+          </form>
+        </section>
+        <section id="tickets" class="view" hidden>
+          <h1>问题与反馈</h1>
+          <form id="ticket-form">
+            <label>标题<input id="ticket-title" required /></label
+            ><label
+              >说明<textarea
+                id="ticket-description"
+                required
+                minlength="5"
+              ></textarea></label
+            ><label
+              >类型<select id="ticket-category">
+                <option value="question">咨询问题</option>
+                <option value="knowledge">知识更正</option>
+              </select></label
+            ><button>登记问题</button>
+          </form>
+          <div id="ticket-list"></div>
+          <article id="ticket-detail"></article>
+        </section>
+        <section id="knowledge" class="view" hidden>
+          <h1>当前知识</h1>
+          <div id="page-list"></div>
+          <article id="page-content"></article>
+        </section>
+        <section id="admin" class="view" hidden>
+          <h1>维护与发布</h1>
+          <p>草稿提交后等待来源写回。发布前需要固定版本回归结果和人工复核。</p>
+          <details>
+            <summary>新建知识修订</summary>
+            <form id="revision-form">
+              <label>页面<select id="revision-page"></select></label
+              ><label>修订标题<input id="revision-title" required /></label
+              ><label>影响范围<input id="revision-scope" required /></label
+              ><label
+                >更正理由<textarea
+                  id="revision-reason"
+                  required
+                  minlength="10"
+                ></textarea></label
+              ><label
+                >更正后的完整正文<textarea
+                  id="revision-content"
+                  required
+                ></textarea></label
+              ><label
+                >来源依据<textarea
+                  id="revision-source"
+                  required
+                  minlength="10"
+                ></textarea></label
+              ><button>保存草稿</button>
+            </form>
+          </details>
+          <div id="revision-list"></div>
+          <details>
+            <summary>提交已维护好的快照</summary>
+            <form id="release-form">
+              <label
+                >快照文件<input
+                  id="bundle"
+                  type="file"
+                  accept=".json,application/json"
+                  required /></label
+              ><button>校验并提交</button>
+            </form>
+          </details>
+          <div id="release-list"></div>
+        </section>
+      </section>
+    </main>
+    <footer>知识指导不代表实际业务操作已完成。</footer>
+  </body>
+</html>

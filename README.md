@@ -1,10 +1,18 @@
 # wikiBot
 
-面向不同业务领域的企业知识 Bot：基于 llm_wiki 维护知识，使用公司模型，提供企业微信与网页问答、不同人群的回答风格、按角色开放的能力、反馈及问题登记，以及管理员知识修订和复核发布。
+面向不同业务领域的企业知识 Bot：复用现有 llm-wiki skills 维护的知识库，使用公司模型，提供企业微信与网页问答、不同人群的回答风格、按角色开放的能力、反馈及问题登记，以及管理员知识修订和复核发布。
 
 ## 当前状态
 
-仓库当前交付设计与交接文档，尚未交付应用实现或真实环境验收结果。当前规范性设计为 **v0.4**；旧版本与 HTML 用于历史追溯。
+仓库已有可运行的 TypeScript 单机集成实现：网页问答、知识发布、企微单聊适配、工单、修订草稿、模型门禁和恢复隔离。当前规范性设计为 **v0.4**；尚未完成全部规格及真实试点验收。具体范围见[实施证据](.scratch/wikibot-v0.4/evidence/implementation.md)。
+
+```sh
+npm ci
+npm run demo
+WIKIBOT_DEMO=1 npm run dev
+```
+
+访问 `http://127.0.0.1:3000`，使用 `.local/demo-access.json` 中的演示令牌。演示仅含合成知识和固定模型。配置、发布、企微及恢复步骤见[运行手册](docs/operations.md)。
 
 ## 阅读入口
 
@@ -14,6 +22,11 @@
 | [开发交接](docs/handoff/development-handoff.md) | 开工顺序、先决条件、交付物与完成标准 |
 | [成本估算](docs/handoff/domain-knowledge-bot-cost-estimate-v0.3.md) | 人日、排期、预算假设与持续运行成本 |
 | [独立设计审查](reviews/wikiBot-design-review-2026-09-25/REVIEW.md) | F1–F5 的原始问题、反例和验证要求 |
+| [v0.4 设计访谈](reviews/wikiBot-v0.4-grill-2026-09-26/REVIEW.md) | 两轮已确认的设计取舍、收口后的设计树和待验证事项 |
+| [领域语言](CONTEXT.md) | 领域、角色、流程分支、咨询对象与工单术语 |
+| [实施规格与任务](.scratch/wikibot-v0.4/README.md) | 本地实施规格、26 项独立任务、依赖与验收映射 |
+
+2026-09-26 两轮访谈 Q1–Q7 已纳入 v0.4，本轮审查树已收口，尚待实现及真实验证。长期取舍记录于 [流程分支 ADR](docs/adr/0001-exclusive-procedure-paths.md)、[恢复 ADR](docs/adr/0002-verify-state-before-restoring-service.md) 和[模型验证 ADR](docs/adr/0003-revalidate-known-model-changes.md)。
 
 ## 设计摘要
 

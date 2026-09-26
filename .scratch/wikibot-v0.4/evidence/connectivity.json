@@ -1,0 +1,54 @@
+{
+  "attempts": [
+    {
+      "date": "2026-09-26T06:44:24.049Z",
+      "node": "v24.13.0",
+      "scope": "Synthetic model prompt and bot authentication only. No business messages sent.",
+      "results": [
+        {
+          "kind": "model",
+          "requestedModel": "glm-5.3",
+          "status": "connected",
+          "text": "OK",
+          "model": "glm-5.3",
+          "inputTokens": 0,
+          "outputTokens": 3,
+          "firstTextMs": 1400.9732920000006,
+          "totalMs": 1435.96025,
+          "stopReason": "end_turn"
+        },
+        {
+          "kind": "model",
+          "requestedModel": "glm-5.3-flash",
+          "status": "connected",
+          "text": "",
+          "model": "glm-5.3-flash",
+          "inputTokens": 0,
+          "outputTokens": 64,
+          "firstTextMs": null,
+          "totalMs": 2124.111166999999,
+          "stopReason": "max_tokens"
+        },
+        {
+          "kind": "wecom",
+          "status": "failed",
+          "errorCode": "853000",
+          "messagesSent": 0
+        }
+      ]
+    },
+    {
+      "date": "2026-09-26T06:47:56.720Z",
+      "node": "v24.13.0",
+      "scope": "Synthetic model prompt and bot authentication only. No business messages sent.",
+      "results": [
+        {
+          "kind": "wecom",
+          "status": "authenticated",
+          "errorCode": null,
+          "messagesSent": 0
+        }
+      ]
+    }
+  ]
+}
