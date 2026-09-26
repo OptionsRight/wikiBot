@@ -18,7 +18,7 @@ test("verified single-chat requests deduplicate by real message id and deliver c
     wecom: {
       botId: "test-bot",
       domain: "ads",
-      members: { alice: "alice" },
+      members: { "opaque-callback-member": "alice" },
       transport,
     },
   });
@@ -27,7 +27,7 @@ test("verified single-chat requests deduplicate by real message id and deliver c
     const event: Inbound = {
       id: "message-1",
       botId: "test-bot",
-      userId: "alice",
+      userId: "opaque-callback-member",
       chatType: "single",
       text: "示例流程\n对象：客户甲\n条件：scenario=new",
       replyContext: {},
@@ -43,6 +43,9 @@ test("verified single-chat requests deduplicate by real message id and deliver c
     await receive({ ...event, id: "group-1", chatType: "group" });
     assert.equal(sent.length, count);
     await receive({ ...event, id: "unknown-1", userId: "unmapped" });
+    assert.equal(sent.length, count);
+    // A company subject/send address is not automatically a trusted callback ID.
+    await receive({ ...event, id: "unbound-subject", userId: "alice" });
     assert.equal(sent.length, count);
   } finally {
     await t.app.close();

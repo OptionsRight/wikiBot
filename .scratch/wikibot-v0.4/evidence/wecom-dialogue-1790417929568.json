@@ -1,0 +1,535 @@
+{
+  "node": "v24.13.0",
+  "sdk": "@wecom/aibot-node-sdk@1.0.7",
+  "phase": "closed",
+  "recipientHash": "c160bbfc6e6f0c3c9dc43cc6b2b1ca317c8c9b38ff8d30bdfa802711e41eed6e",
+  "scope": "Real single-chat transport with synthetic in-memory knowledge and model; no real Wiki or external model",
+  "events": [
+    {
+      "at": "2026-09-26T10:18:49.862Z",
+      "type": "ready",
+      "recipientHash": "c160bbfc6e6f0c3c9dc43cc6b2b1ca317c8c9b38ff8d30bdfa802711e41eed6e",
+      "domain": "synthetic-only",
+      "expiresAt": "2026-09-26T10:38:49.862Z",
+      "evidencePath": ".scratch/wikibot-v0.4/evidence/wecom-dialogue-1790417929568.json"
+    },
+    {
+      "at": "2026-09-26T10:19:09.220Z",
+      "type": "inbound",
+      "messageIdHash": "a63c7982c67bda30e13462ccf43a772d09d6451f43380cded63506521609a8c7",
+      "command": "/帮助",
+      "bytes": 7,
+      "textHash": "7006941287503f135941775e4512551036c38e48d25b8492cfe30fd6c8f0c06a"
+    },
+    {
+      "at": "2026-09-26T10:19:09.221Z",
+      "type": "reply_attempt",
+      "messageIdHash": "a63c7982c67bda30e13462ccf43a772d09d6451f43380cded63506521609a8c7",
+      "finish": true,
+      "contentBytes": 511,
+      "contentHash": "734cb30f3b2576d2ea2771bc1a76ef6addb6e69eedbf23af83531c0157159bf2",
+      "markers": []
+    },
+    {
+      "at": "2026-09-26T10:19:09.640Z",
+      "type": "reply_ack",
+      "messageIdHash": "a63c7982c67bda30e13462ccf43a772d09d6451f43380cded63506521609a8c7",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 419
+    },
+    {
+      "at": "2026-09-26T10:19:09.642Z",
+      "type": "processed",
+      "messageIdHash": "a63c7982c67bda30e13462ccf43a772d09d6451f43380cded63506521609a8c7",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 0
+    },
+    {
+      "at": "2026-09-26T10:19:30.648Z",
+      "type": "inbound",
+      "messageIdHash": "254b9d99d586dc4fa96a4f657af8ee6dfc172c64fed3212f971fc3de3413727d",
+      "command": "/偏好 技术 熟练",
+      "bytes": 21,
+      "textHash": "5c87239615dfb5092d15a99fbaf091c5219f60a681c03d5c42e5b20a5ffb4901"
+    },
+    {
+      "at": "2026-09-26T10:19:30.651Z",
+      "type": "reply_attempt",
+      "messageIdHash": "254b9d99d586dc4fa96a4f657af8ee6dfc172c64fed3212f971fc3de3413727d",
+      "finish": true,
+      "contentBytes": 69,
+      "contentHash": "dbfc2b592e18f457ea55b1d0f2f7ce3f572f705d63a3e8a7c143595db7699e2c",
+      "markers": [
+        "当前偏好"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:19:31.057Z",
+      "type": "reply_ack",
+      "messageIdHash": "254b9d99d586dc4fa96a4f657af8ee6dfc172c64fed3212f971fc3de3413727d",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 406
+    },
+    {
+      "at": "2026-09-26T10:19:31.058Z",
+      "type": "processed",
+      "messageIdHash": "254b9d99d586dc4fa96a4f657af8ee6dfc172c64fed3212f971fc3de3413727d",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 0
+    },
+    {
+      "at": "2026-09-26T10:20:35.075Z",
+      "type": "inbound",
+      "messageIdHash": "ef5e4e8db5955a53af8babd09fccf168d735d8c5f4e87f38b460b3c6f9f0fed9",
+      "command": "question",
+      "bytes": 37,
+      "textHash": "1cd22597db2ea35513ad5e8aa2a108afa8208d69606a32b677a173d58e407d4c"
+    },
+    {
+      "at": "2026-09-26T10:20:35.078Z",
+      "type": "reply_attempt",
+      "messageIdHash": "ef5e4e8db5955a53af8babd09fccf168d735d8c5f4e87f38b460b3c6f9f0fed9",
+      "finish": true,
+      "contentBytes": 143,
+      "contentHash": "458008f3d9ba0ff58f34f5b9a656fa359e880f03d2a34ad7f095f18bf73e423a",
+      "markers": [
+        "scenario",
+        "生成完成"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:20:35.495Z",
+      "type": "reply_ack",
+      "messageIdHash": "ef5e4e8db5955a53af8babd09fccf168d735d8c5f4e87f38b460b3c6f9f0fed9",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 417
+    },
+    {
+      "at": "2026-09-26T10:20:35.496Z",
+      "type": "processed",
+      "messageIdHash": "ef5e4e8db5955a53af8babd09fccf168d735d8c5f4e87f38b460b3c6f9f0fed9",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 1,
+      "answerId": "22cf8520-1fa2-4e30-a75d-2d1757641285"
+    },
+    {
+      "at": "2026-09-26T10:20:35.496Z",
+      "type": "answer_state",
+      "answerId": "22cf8520-1fa2-4e30-a75d-2d1757641285",
+      "state": "complete",
+      "code": "CLARIFICATION_REQUIRED",
+      "style": "technical",
+      "depth": "experienced",
+      "review": "clear",
+      "deliveredThrough": 1,
+      "checklistComplete": false
+    },
+    {
+      "at": "2026-09-26T10:20:49.588Z",
+      "type": "inbound",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "command": "/条件",
+      "bytes": 20,
+      "textHash": "d3b38e0299b11b9e25b074c9b0c30f0a3c2e066110f87c3311ec297f1398b6c1"
+    },
+    {
+      "at": "2026-09-26T10:20:49.594Z",
+      "type": "reply_attempt",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "finish": false,
+      "contentBytes": 139,
+      "contentHash": "8bf091c26042d131690f97bd049b7c437f70176f238b46f1ad937213f4b9e2c8",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:20:50.034Z",
+      "type": "reply_ack",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "state": "acked",
+      "finish": false,
+      "elapsedMs": 440
+    },
+    {
+      "at": "2026-09-26T10:20:56.602Z",
+      "type": "reply_attempt",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "finish": true,
+      "contentBytes": 282,
+      "contentHash": "8c4e2c2d2e99178ebba10a5b56aaa997b2635b4f201d14bff1b8fd079efeb0d6",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果",
+        "生成完成"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:20:56.868Z",
+      "type": "reply_ack",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 266
+    },
+    {
+      "at": "2026-09-26T10:20:56.869Z",
+      "type": "processed",
+      "messageIdHash": "b5b9ea9462e3859c0c3f341753a175effd520963ee32c63988905b28ccb43a5c",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 4,
+      "answerId": "f7554f09-1327-436c-847d-3a91d4a87787"
+    },
+    {
+      "at": "2026-09-26T10:20:56.870Z",
+      "type": "answer_state",
+      "answerId": "f7554f09-1327-436c-847d-3a91d4a87787",
+      "state": "complete",
+      "code": "GUIDANCE",
+      "style": "technical",
+      "depth": "experienced",
+      "review": "clear",
+      "deliveredThrough": 4,
+      "checklistComplete": true
+    },
+    {
+      "at": "2026-09-26T10:22:49.393Z",
+      "type": "inbound",
+      "messageIdHash": "8ad48c1011e095d939f50a8edd21ebefa42860e6ef660ba5530ca847f5ac1f4c",
+      "command": "question",
+      "bytes": 15,
+      "textHash": "aea2f14babf35f8c4c40be82d57d2f44f22ee00df4fbe90106b00afb8ba7b07a"
+    },
+    {
+      "at": "2026-09-26T10:22:49.397Z",
+      "type": "reply_attempt",
+      "messageIdHash": "8ad48c1011e095d939f50a8edd21ebefa42860e6ef660ba5530ca847f5ac1f4c",
+      "finish": true,
+      "contentBytes": 121,
+      "contentHash": "01ba02de7393a33dbba424bf45b610ba15d4d1717048109b57803a4ea9b5a3de",
+      "markers": [
+        "请明确",
+        "生成完成"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:22:49.800Z",
+      "type": "reply_ack",
+      "messageIdHash": "8ad48c1011e095d939f50a8edd21ebefa42860e6ef660ba5530ca847f5ac1f4c",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 403
+    },
+    {
+      "at": "2026-09-26T10:22:49.801Z",
+      "type": "processed",
+      "messageIdHash": "8ad48c1011e095d939f50a8edd21ebefa42860e6ef660ba5530ca847f5ac1f4c",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 1,
+      "answerId": "c5531774-876c-4d0c-b78c-feef464dc8ae"
+    },
+    {
+      "at": "2026-09-26T10:22:49.802Z",
+      "type": "answer_state",
+      "answerId": "c5531774-876c-4d0c-b78c-feef464dc8ae",
+      "state": "complete",
+      "code": "PROCEDURE_SELECTION_REQUIRED",
+      "style": "technical",
+      "depth": "experienced",
+      "review": "clear",
+      "deliveredThrough": 1,
+      "checklistComplete": false
+    },
+    {
+      "at": "2026-09-26T10:24:14.545Z",
+      "type": "inbound",
+      "messageIdHash": "ac252276eb2e6f68935a3c472f108ca15eb255d7b8a7968f19a5d2c5c2682d29",
+      "command": "/登记",
+      "bytes": 65,
+      "textHash": "927ec00ce907bf8ca1bd286f8e4c8074ccadb9cb52c92e4655c177354de4f4b1"
+    },
+    {
+      "at": "2026-09-26T10:24:14.547Z",
+      "type": "reply_attempt",
+      "messageIdHash": "ac252276eb2e6f68935a3c472f108ca15eb255d7b8a7968f19a5d2c5c2682d29",
+      "finish": true,
+      "contentBytes": 73,
+      "contentHash": "aedf174f8a341ee57bffe4482969c349d6faec5eecfe30b2f399b9712b39ea30",
+      "markers": [
+        "问题已登记",
+        "状态："
+      ]
+    },
+    {
+      "at": "2026-09-26T10:24:14.888Z",
+      "type": "notice_ack",
+      "state": "acked"
+    },
+    {
+      "at": "2026-09-26T10:24:14.944Z",
+      "type": "reply_ack",
+      "messageIdHash": "ac252276eb2e6f68935a3c472f108ca15eb255d7b8a7968f19a5d2c5c2682d29",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 397
+    },
+    {
+      "at": "2026-09-26T10:24:14.945Z",
+      "type": "processed",
+      "messageIdHash": "ac252276eb2e6f68935a3c472f108ca15eb255d7b8a7968f19a5d2c5c2682d29",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 0
+    },
+    {
+      "at": "2026-09-26T10:24:39.052Z",
+      "type": "inbound",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "command": "question",
+      "bytes": 62,
+      "textHash": "57d72481f615b258a912a929ba0fb12a9ddd49810437464577687f6cad597ab0"
+    },
+    {
+      "at": "2026-09-26T10:24:39.057Z",
+      "type": "reply_attempt",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "finish": false,
+      "contentBytes": 139,
+      "contentHash": "87d9f1eaa9d84ec8141d65e287567fd57f62d374e90bf572897116cdd1b0287d",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:24:39.477Z",
+      "type": "reply_ack",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "state": "acked",
+      "finish": false,
+      "elapsedMs": 420
+    },
+    {
+      "at": "2026-09-26T10:24:46.059Z",
+      "type": "reply_attempt",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "finish": true,
+      "contentBytes": 282,
+      "contentHash": "4a5d3bf0f03821d17fbf1e53d6ab0cdf5259f1a622e458f006188f5d4e866d41",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果",
+        "生成完成"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:24:46.366Z",
+      "type": "reply_ack",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 307
+    },
+    {
+      "at": "2026-09-26T10:24:46.367Z",
+      "type": "processed",
+      "messageIdHash": "6c3a47be09ae11a31a625ff17533e3153fd772bc4841e430057f6e0f1a948074",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 4,
+      "answerId": "1cf28f1c-dd29-4389-8248-de5792df04be"
+    },
+    {
+      "at": "2026-09-26T10:24:46.368Z",
+      "type": "answer_state",
+      "answerId": "1cf28f1c-dd29-4389-8248-de5792df04be",
+      "state": "complete",
+      "code": "GUIDANCE",
+      "style": "technical",
+      "depth": "experienced",
+      "review": "clear",
+      "deliveredThrough": 4,
+      "checklistComplete": true
+    },
+    {
+      "at": "2026-09-26T10:25:02.299Z",
+      "type": "inbound",
+      "messageIdHash": "51ff41534a1ae83074f570573de226287f91dc1865d5e5f3197fa1977c807e61",
+      "command": "/取消",
+      "bytes": 7,
+      "textHash": "4629bd32e90678701fc76738a8be2205ce72e8b3038b5ff319f283e75d5cb1fa"
+    },
+    {
+      "at": "2026-09-26T10:25:02.301Z",
+      "type": "reply_attempt",
+      "messageIdHash": "51ff41534a1ae83074f570573de226287f91dc1865d5e5f3197fa1977c807e61",
+      "finish": true,
+      "contentBytes": 119,
+      "contentHash": "19c8888127146ac46695180730bc082292f5a050cee040aad2c82c68660d27be",
+      "markers": [
+        "已取消"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:25:02.743Z",
+      "type": "reply_ack",
+      "messageIdHash": "51ff41534a1ae83074f570573de226287f91dc1865d5e5f3197fa1977c807e61",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 442
+    },
+    {
+      "at": "2026-09-26T10:25:02.744Z",
+      "type": "processed",
+      "messageIdHash": "51ff41534a1ae83074f570573de226287f91dc1865d5e5f3197fa1977c807e61",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 0
+    },
+    {
+      "at": "2026-09-26T10:26:34.754Z",
+      "type": "inbound",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "command": "/继续",
+      "bytes": 7,
+      "textHash": "1c6e25f246fdbb9074c1e1962897e1517a1ec270bc37ecc91a280f68b8c42fbb"
+    },
+    {
+      "at": "2026-09-26T10:26:34.761Z",
+      "type": "reply_attempt",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "finish": false,
+      "contentBytes": 139,
+      "contentHash": "07755c789b6b9964a4f7e85674f162e0e81f8a077915e7526aa4d0e6bd8c9830",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:26:35.184Z",
+      "type": "reply_ack",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "state": "acked",
+      "finish": false,
+      "elapsedMs": 423
+    },
+    {
+      "at": "2026-09-26T10:26:41.860Z",
+      "type": "reply_attempt",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "finish": true,
+      "contentBytes": 282,
+      "contentHash": "7e3c235142d44f92de06f67f6b829a5d50ab9a2cce46f29d847c6a357ee79baf",
+      "markers": [
+        "准备材料",
+        "提交申请",
+        "核对结果",
+        "生成完成"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:26:42.151Z",
+      "type": "reply_ack",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 291
+    },
+    {
+      "at": "2026-09-26T10:26:42.152Z",
+      "type": "processed",
+      "messageIdHash": "e6c20cfa81b3b89974414dcf1c8533181dc798a81bb40594c4b409a0da1d16c1",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 4,
+      "answerId": "28e69cd7-88c0-41b2-b97e-d71358198318"
+    },
+    {
+      "at": "2026-09-26T10:26:42.153Z",
+      "type": "answer_state",
+      "answerId": "28e69cd7-88c0-41b2-b97e-d71358198318",
+      "state": "complete",
+      "code": "GUIDANCE",
+      "style": "technical",
+      "depth": "experienced",
+      "review": "clear",
+      "deliveredThrough": 4,
+      "checklistComplete": true
+    },
+    {
+      "at": "2026-09-26T10:26:49.951Z",
+      "type": "inbound",
+      "messageIdHash": "deaaeba7761a14eff0216aa2f3d2d76cce1c0e3b6e7913d2a8659ee2064c3a79",
+      "command": "/取消",
+      "bytes": 7,
+      "textHash": "4629bd32e90678701fc76738a8be2205ce72e8b3038b5ff319f283e75d5cb1fa"
+    },
+    {
+      "at": "2026-09-26T10:26:49.954Z",
+      "type": "reply_attempt",
+      "messageIdHash": "deaaeba7761a14eff0216aa2f3d2d76cce1c0e3b6e7913d2a8659ee2064c3a79",
+      "finish": true,
+      "contentBytes": 119,
+      "contentHash": "4091572a031fdfc6d0d2721e39e85e59d367660d45d49bb2cbbe58a2fa94a497",
+      "markers": [
+        "已取消"
+      ]
+    },
+    {
+      "at": "2026-09-26T10:26:50.342Z",
+      "type": "reply_ack",
+      "messageIdHash": "deaaeba7761a14eff0216aa2f3d2d76cce1c0e3b6e7913d2a8659ee2064c3a79",
+      "state": "acked",
+      "finish": true,
+      "elapsedMs": 388
+    },
+    {
+      "at": "2026-09-26T10:26:50.343Z",
+      "type": "processed",
+      "messageIdHash": "deaaeba7761a14eff0216aa2f3d2d76cce1c0e3b6e7913d2a8659ee2064c3a79",
+      "state": "acked",
+      "complete": true,
+      "streamFinished": true,
+      "through": 0
+    },
+    {
+      "at": "2026-09-26T10:29:34.066Z",
+      "type": "status",
+      "connected": true
+    },
+    {
+      "at": "2026-09-26T10:29:48.410Z",
+      "type": "closed",
+      "reason": "OPERATOR_FINISHED"
+    }
+  ],
+  "evidenceNormalization": {
+    "identifiers": "Recipient/callback user and platform message IDs replaced after session closure with sha256(canonical JSON string), matching src/core.ts hash.",
+    "legacyReplyMeasurements": "contentBytes and contentHash measure the service reply BEFORE the smoke helper adds its synthetic-test prefix. They are not full wire-body measurements. The current helper records wireBytes and wireBodyHash including the prefix.",
+    "retained": "Timestamps, event order, normalized outcomes and synthetic answer IDs unchanged."
+  }
+}

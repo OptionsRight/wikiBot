@@ -56,6 +56,10 @@ npm run snapshot -- WORKSPACE_ROOT MANIFEST.json NEW_SNAPSHOT.json
 
 WECOM_ENABLED=1 才连接，使用 runtime Bot ID/Secret、固定领域及已核实成员映射。用户已确认 ID 是字段标签、实际值从 aib 开始；测试成员为 rubychen（陈诚），尚未指定知识管理员。映射不授予领域资格，不自动赋予管理员角色。
 
+`WECOM_MEMBERS_JSON` 的键必须是可信消息回调中实际的 `from.userid`，值才是已核实的公司身份 subject。真实联调发现，向 `rubychen` 主动发送成功，并不表示其入站 `from.userid` 也是 `rubychen`；该租户回传另一串不透明标识。请依据受控联调/公司目录核对映射，不按消息自报姓名自动绑定，不通过取消白名单检查解决无回复。
+
+`tools/wecom-dialogue-smoke.ts` 是限时双向联调助手，使用独立内存测试数据和合成模型。标准输入的一行 JSON 包含 botId、botSecret、userId（实际回调标识）及 minutes（1–30，默认 20）。必须通过管道提供凭据，或在启动前关闭终端回显（`stty -echo`，完成后用 `stty echo` 恢复）；`readline` 本身不负责关闭终端回显。就绪后仅接受指定 bot、单聊和确切回调标识，记录脱敏事件及回执，不读取真实 Wiki。标准输入发送 `status` 查看连接，发送 `stop` 关闭，也会在期限到达后自动关闭。示例模型解释延迟 7 秒，保留应用原 10 秒期限，便于测试取消；这不是公司模型性能测试。
+
 采用[企业微信官方 SDK](https://github.com/WecomTeam/aibot-node-sdk)，一个数据库的同 bot 只有一个有效连接租约。群事件默认拒绝；不接受用户声称的领域或角色。单聊例子：
 
 ```text

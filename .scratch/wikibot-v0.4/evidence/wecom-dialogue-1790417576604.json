@@ -1,0 +1,42 @@
+{
+  "node": "v24.13.0",
+  "sdk": "@wecom/aibot-node-sdk@1.0.7",
+  "phase": "closed",
+  "recipientHash": "97bac5aed255d6c317aed0b83c4e6a1fd6e1971c7c5efcb9138175ff05dd8717",
+  "scope": "Real single-chat transport with synthetic in-memory knowledge and model; no real Wiki or external model",
+  "events": [
+    {
+      "at": "2026-09-26T10:12:56.964Z",
+      "type": "ready",
+      "recipientHash": "97bac5aed255d6c317aed0b83c4e6a1fd6e1971c7c5efcb9138175ff05dd8717",
+      "domain": "synthetic-only",
+      "expiresAt": "2026-09-26T10:32:56.964Z",
+      "evidencePath": ".scratch/wikibot-v0.4/evidence/wecom-dialogue-1790417576604.json"
+    },
+    {
+      "at": "2026-09-26T10:14:25.583Z",
+      "type": "status",
+      "connected": true
+    },
+    {
+      "at": "2026-09-26T10:14:29.636Z",
+      "type": "ignored_event",
+      "reason": "OUTSIDE_TEST_SCOPE"
+    },
+    {
+      "at": "2026-09-26T10:15:06.893Z",
+      "type": "ignored_event",
+      "reason": "OUTSIDE_TEST_SCOPE"
+    },
+    {
+      "at": "2026-09-26T10:15:51.554Z",
+      "type": "closed",
+      "reason": "OPERATOR_FINISHED"
+    }
+  ],
+  "evidenceNormalization": {
+    "identifiers": "Recipient/callback user and platform message IDs replaced after session closure with sha256(canonical JSON string), matching src/core.ts hash.",
+    "legacyReplyMeasurements": "contentBytes and contentHash measure the service reply BEFORE the smoke helper adds its synthetic-test prefix. They are not full wire-body measurements. The current helper records wireBytes and wireBodyHash including the prefix.",
+    "retained": "Timestamps, event order, normalized outcomes and synthetic answer IDs unchanged."
+  }
+}
