@@ -48,8 +48,14 @@ export function quarantine(store: Store) {
         a.review === "invalid" ? "invalid" : "pending",
       );
     for (const n of store.list<Notice>("notice"))
-      if (n.state === "pending")
-        store.put("notice", { ...n, state: "unknown", version: n.version + 1 });
+      if (["pending", "failed", "unknown"].includes(n.state))
+        store.put("notice", {
+          ...n,
+          state: "unknown",
+          retryable: false,
+          code: "RECOVERY_EXECUTION_UNCONFIRMED",
+          version: n.version + 1,
+        });
   });
 }
 export function registerOperations(

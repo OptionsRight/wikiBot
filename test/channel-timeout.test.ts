@@ -51,6 +51,24 @@ test("a channel timeout finishes the cumulative stream with an explicit incomple
     assert.ok(sent.length >= 2);
     assert.equal(sent.at(-1)!.finish, true);
     assert.match(sent.at(-1)!.text, /未完整完成/);
+    const receipts = (
+      await t.request(
+        "GET",
+        "/api/domains/ads/channel-receipts",
+        undefined,
+        t.alice,
+      )
+    ).value;
+    const answer = (
+      await t.request(
+        "GET",
+        `/api/domains/ads/answers/${receipts[0].answerId}`,
+        undefined,
+        t.alice,
+      )
+    ).value;
+    assert.equal(answer.code, "DEADLINE_EXCEEDED");
+    assert.equal(receipts[0].complete, false);
   } finally {
     await t.app.close();
   }

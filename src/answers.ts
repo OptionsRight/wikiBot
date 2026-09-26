@@ -56,6 +56,7 @@ export interface Answer extends Entity {
   reviewReason?: string;
   exposedThrough: number;
   deliveredThrough: number;
+  deliveryCancelledAt?: number;
   modelMetrics?: unknown;
 }
 interface Context extends Entity {
@@ -284,10 +285,22 @@ export class AnswerService {
     };
   }
   cancel(actor: Identity, domain: string, answerId: string, idem: string) {
+    return this.stop(actor, domain, answerId, idem, "CANCELLED");
+  }
+  expire(actor: Identity, domain: string, answerId: string, idem: string) {
+    return this.stop(actor, domain, answerId, idem, "DEADLINE_EXCEEDED");
+  }
+  private stop(
+    actor: Identity,
+    domain: string,
+    answerId: string,
+    idem: string,
+    code: "CANCELLED" | "DEADLINE_EXCEEDED",
+  ) {
     const result = this.store.command(
       actor,
       domain,
-      `cancel:${answerId}`,
+      `${code}:${answerId}`,
       idem,
       {},
       () => {
@@ -295,13 +308,22 @@ export class AnswerService {
       },
       () => {
         const a = this.store.get<Answer>("answer", answerId)!;
-        if (!["queued", "running"].includes(a.state)) return a;
+        const running = ["queued", "running"].includes(a.state);
+        if (!running && code !== "CANCELLED") return a;
         return this.store.put<Answer>("answer", {
           ...a,
-          state: a.blocks.length ? "incomplete" : "failed",
-          code: "CANCELLED",
+          state: running
+            ? a.blocks.length
+              ? "incomplete"
+              : "failed"
+            : a.state,
+          code: running ? code : a.code,
+          deliveryCancelledAt:
+            code === "CANCELLED"
+              ? (a.deliveryCancelledAt ?? Date.now())
+              : a.deliveryCancelledAt,
           lease: undefined,
-          finishedAt: Date.now(),
+          finishedAt: a.finishedAt ?? Date.now(),
           version: a.version + 1,
         });
       },
@@ -355,7 +377,9 @@ export class AnswerService {
             type: "status",
             text:
               "请明确要咨询的流程：" +
-              release.bundle.procedures.map((p) => p.title).join("、"),
+              release.bundle.procedures
+                .map((p) => `${p.title}（流程：${p.id}）`)
+                .join("、"),
             citations: [],
           },
         ];
@@ -388,7 +412,10 @@ export class AnswerService {
               type: "status",
               text: selected.questions.length
                 ? selected.questions
-                    .map((q) => `${q.question}（${q.options.join(" / ")}）`)
+                    .map(
+                      (q) =>
+                        `${q.question}（${q.options.join(" / ")}）；可补充：${q.id}=所选值`,
+                    )
                     .join("\n")
                 : ({
                     PROCEDURE_NOT_APPLICABLE: "根据已审核条件，本场景不适用。",
@@ -472,7 +499,12 @@ export class AnswerService {
         this.store.put<Answer>("answer", {
           ...a,
           state: a.blocks.length ? "incomplete" : "failed",
-          code: error instanceof Fault ? error.code : "MODEL_FAILED",
+          code:
+            Date.now() >= a.deadline
+              ? "DEADLINE_EXCEEDED"
+              : error instanceof Fault
+                ? error.code
+                : "MODEL_FAILED",
           finishedAt: Date.now(),
           lease: undefined,
           version: a.version + 1,

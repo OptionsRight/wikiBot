@@ -106,6 +106,7 @@ const app = await buildApp({
           botId: env.WECOM_BOT_ID,
           domain: env.WECOM_DOMAIN,
           members,
+          notifications: env.WECOM_NOTIFICATIONS_ENABLED === "1",
           transport: new WecomSocket(env.WECOM_BOT_ID, env.WECOM_SECRET),
         }
       : undefined,

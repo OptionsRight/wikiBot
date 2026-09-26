@@ -854,5 +854,8 @@
     "corporate OIDC and WeCom identity/delivery exercise",
     "independent recovery authority and operations policy",
     "group audience directory, attachment policy and second real domain"
+  ],
+  "follow_up_evidence": [
+    "evidence/notifications-single-chat.md"
   ]
 }

@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-仓库已有可运行的 TypeScript 单机集成实现：网页问答、知识发布、企微单聊适配、工单、修订草稿、模型门禁和恢复隔离。当前规范性设计为 **v0.4**；尚未完成全部规格及真实试点验收。具体范围见[实施证据](.scratch/wikibot-v0.4/evidence/implementation.md)。
+仓库已有可运行的 TypeScript 单机集成实现：网页问答、知识发布、企微单聊与取消/续问/偏好、工单及状态通知、修订草稿、模型门禁和恢复隔离。当前规范性设计为 **v0.4**；尚未完成全部规格及真实试点验收。具体范围见[实施证据](.scratch/wikibot-v0.4/evidence/implementation.md)，本轮见[通知与单聊验证记录](.scratch/wikibot-v0.4/evidence/notifications-single-chat.md)。
 
 ```sh
 npm ci

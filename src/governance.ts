@@ -14,19 +14,36 @@ import { body, key, path, platform } from "./app.js";
 import { modelState, type ModelState, type Release } from "./publication.js";
 import type { Answer } from "./answers.js";
 
+export const NOTICE_TTL_MS = 86400000;
+export const NOTICE_MAX_ATTEMPTS = 3;
+export type NoticeKind =
+  | "TICKET_SUBMITTED"
+  | "TICKET_UPDATED"
+  | "MODEL_REVALIDATION_REQUIRED"
+  | "ANSWER_INVALIDATED"
+  | "RELEASE_REVOKED";
 export interface Notice extends Entity {
   owner: string;
   objectId: string;
-  kind: string;
-  state: "pending" | "acked" | "failed" | "unknown";
+  kind: NoticeKind;
+  state: "pending" | "acked" | "failed" | "unknown" | "suppressed";
   createdAt: number;
+  attempts?: number;
+  attemptedAt?: number;
+  acknowledgedAt?: number;
+  code?: string;
+  retryable?: boolean;
+  recipient?: { botId: string; userId: string };
+  ticketVersion?: number;
+  ticketState?: string;
 }
 export function notice(
   store: Store,
   domain: string,
   owner: string,
-  kind: string,
+  kind: NoticeKind,
   objectId: string,
+  event?: { ticketVersion: number; ticketState: string },
 ) {
   return store.put<Notice>("notice", {
     id: id(),
@@ -37,6 +54,7 @@ export function notice(
     state: "pending",
     createdAt: Date.now(),
     version: 1,
+    ...event,
   });
 }
 export function stopAnswer(
@@ -59,7 +77,17 @@ export function stopAnswer(
     finishedAt: a.finishedAt ?? Date.now(),
     version: a.version + 1,
   });
-  notice(store, a.domain, a.owner, code, a.id);
+  notice(
+    store,
+    a.domain,
+    a.owner,
+    review === "pending"
+      ? "MODEL_REVALIDATION_REQUIRED"
+      : code === "RELEASE_REVOKED"
+        ? code
+        : "ANSWER_INVALIDATED",
+    a.id,
+  );
 }
 export function invalidateCandidates(store: Store, domain: string) {
   for (const r of store.list<Release>("release", domain))
@@ -156,6 +184,56 @@ export function registerGovernance(app: FastifyInstance, store: Store) {
     return store
       .list<Notice>("notice", domain)
       .filter((n) => n.owner === request.actor.subject);
+  });
+  app.post("/api/domains/:domain/notices/:id/retry", async (request) => {
+    const domain = path(request, "domain"),
+      noticeId = path(request, "id");
+    const input = body(
+      z.object({ expectedVersion: z.number().int().positive() }).strict(),
+      request,
+    );
+    const authorize = () => {
+      access(store, request.actor, domain);
+      const n = store.get<Notice>("notice", noticeId);
+      requireThat(
+        n?.domain === domain && n.owner === request.actor.subject,
+        404,
+        "NOT_FOUND",
+      );
+    };
+    store.command(
+      request.actor,
+      domain,
+      `retry-notice:${noticeId}`,
+      key(request),
+      input,
+      authorize,
+      () => {
+        const n = store.get<Notice>("notice", noticeId)!;
+        requireThat(
+          n.version === input.expectedVersion,
+          409,
+          "VERSION_CONFLICT",
+        );
+        requireThat(
+          n.state === "failed" &&
+            n.retryable &&
+            (n.attempts ?? 0) < NOTICE_MAX_ATTEMPTS &&
+            Date.now() - n.createdAt < NOTICE_TTL_MS,
+          409,
+          "NOTICE_NOT_RETRYABLE",
+        );
+        store.put<Notice>("notice", {
+          ...n,
+          state: "pending",
+          retryable: false,
+          code: undefined,
+          version: n.version + 1,
+        });
+        return { id: n.id };
+      },
+    );
+    return store.get<Notice>("notice", noticeId);
   });
   app.post("/api/domains/:domain/answers/:id/invalidate", async (request) => {
     const domain = path(request, "domain"),

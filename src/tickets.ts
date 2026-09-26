@@ -145,7 +145,10 @@ export function registerTickets(
           updatedAt: Date.now(),
           reopenCount: 0,
         });
-        notice(store, domain, ticket.owner, "TICKET_SUBMITTED", ticket.id);
+        notice(store, domain, ticket.owner, "TICKET_SUBMITTED", ticket.id, {
+          ticketVersion: ticket.version,
+          ticketState: ticket.state,
+        });
         return { id: ticket.id };
       },
     );
@@ -349,7 +352,10 @@ export function registerTickets(
           updatedAt: Date.now(),
         });
         if (input.action !== "note")
-          notice(store, domain, t.owner, "TICKET_UPDATED", tid);
+          notice(store, domain, t.owner, "TICKET_UPDATED", tid, {
+            ticketVersion: t.version + 1,
+            ticketState: t.state,
+          });
         return { id: tid };
       },
     );
