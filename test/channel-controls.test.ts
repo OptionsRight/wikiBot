@@ -368,3 +368,51 @@ test("free-text feedback can be answered without a knowledge release and queried
     await t.app.close();
   }
 });
+
+test("preference command near-misses reply with usage instead of a raw fault code", async () => {
+  let receive!: (event: Inbound) => Promise<void>;
+  const sent: string[] = [];
+  const transport: WecomTransport = {
+    start(fn) {
+      receive = fn;
+    },
+    close() {},
+    async reply(_e, _s, text) {
+      sent.push(text);
+    },
+  };
+  const t = await setup({
+    wecom: {
+      botId: "test",
+      domain: "ads",
+      members: { alice: "alice" },
+      transport,
+    },
+  });
+  const send = (text: string) =>
+    receive({
+      id: `msg-${sent.length}`,
+      botId: "test",
+      userId: "alice",
+      chatType: "single",
+      text,
+      replyContext: {},
+    });
+  try {
+    await send("/帮助");
+    assert.match(sent.at(-1)!, /\/偏好 业务 入门/);
+    // The documented view form must not fall into the setter branch.
+    await send("/偏好 查看");
+    assert.match(sent.at(-1)!, /当前偏好/);
+    assert.doesNotMatch(sent.at(-1)!, /PREFERENCE_FORMAT_REQUIRED/);
+    // A half-filled setting gets the correct format back, not a bare code.
+    await send("/偏好 业务");
+    assert.match(sent.at(-1)!, /偏好格式/);
+    assert.match(sent.at(-1)!, /\/偏好 业务 入门/);
+    assert.doesNotMatch(sent.at(-1)!, /PREFERENCE_FORMAT_REQUIRED/);
+    await send("/偏好 技术 熟练");
+    assert.match(sent.at(-1)!, /当前偏好：技术 \/ 熟练/);
+  } finally {
+    await t.app.close();
+  }
+});

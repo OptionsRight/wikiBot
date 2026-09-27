@@ -389,7 +389,9 @@ export class AnswerService {
             );
             return { ...answer, callStarted: true };
           });
-          // Only a fully validated immutable block may be delivered.
+          // The final validated block is authoritative for delivery and
+          // acks; the partial stream below only feeds running-state display.
+          let lastPartial = 0;
           const { answer: generated, metrics } = await generateAnswer(
             this.model!,
             {
@@ -402,6 +404,28 @@ export class AnswerService {
               ...(history.length ? { history } : {}),
             },
             controller.signal,
+            undefined,
+            (textSoFar) => {
+              if (Date.now() - lastPartial < 800) return;
+              lastPartial = Date.now();
+              try {
+                this.commit(a.id, token!, (answer) => ({
+                  ...answer,
+                  code: "ANSWER",
+                  blocks: [
+                    {
+                      sequence: 1,
+                      type: "explanation",
+                      text: textSoFar,
+                      citations: [],
+                    },
+                  ],
+                }));
+              } catch {
+                // Lease/deadline lost mid-stream: stop generating.
+                controller.abort();
+              }
+            },
           );
           this.commit(a.id, token!, (answer) => ({
             ...answer,

@@ -62,16 +62,17 @@ interface Lease extends Entity {
 function plain(text: string) {
   return text.replace(/[\\`*_{}\[\]()#+.!<>|]/g, "\\$&");
 }
-// The WeCom chat bubble renders only a markdown subset (inline code and
-// quotes render; headings, bold, fenced blocks do not). Normalize the
-// model's full markdown to what this surface displays cleanly.
+// The WeCom chat bubble renders a wide markdown subset: bold, italic,
+// quotes, ordered/unordered lists, inline code and links all display
+// styled (verified 2026-09-27 against the live bot). Heading markers are
+// silently stripped without any style, HTML tags show literally, and
+// `*` bullets are not recognized — degrade only those: headings become
+// bold lines, `*`/`+` bullets become `-`, fenced blocks become text.
 function wecomFormat(text: string) {
   return text
-    .replace(/^#{1,6}\s*(.+)$/gm, "【$1】")
-    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
-    .replace(/\*([^*\n]+)\*/g, "$1")
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1（$2）")
-    .replace(/^[-*]\s+/gm, "· ")
+    .replace(/^#{1,6}\s*(.+)$/gm, "**$1**")
+    .replace(/\*\*\*\*([^*\n]+)\*\*\*\*/g, "**$1**")
+    .replace(/^[*+]\s+/gm, "- ")
     .replace(/^---+\s*$/gm, "———")
     .replace(/```\w*\n([\s\S]*?)```/g, (_match, code: string) => code.trim());
 }
@@ -404,7 +405,7 @@ export function registerChannel(
       }
       if (messageText === "/帮助") {
         await send(
-          "直接发送问题即可，机器人会检索已发布知识并回答（回复支持 Markdown 排版，附依据页面编号）。\n反馈最近答案：回复“反馈 问题描述”\n登记新问题：回复“登记 问题描述”\n/取消 停止生成；/答案 [编号] 查看状态\n/偏好 查看；/偏好 业务|技术 入门|熟练 保存；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/工单 编号 查看处理进度；/附件 编号 转网页\n/身份 查看资格标签；/投递 查看未知回执\n处理人：/备注、/拒绝 编号@版本 说明；/合并 编号@版本 目标编号；/指派 编号@版本 处理人",
+          "直接发送问题即可，机器人会检索已发布知识并回答（回复支持 Markdown 排版，附依据页面编号）。\n反馈最近答案：回复“反馈 问题描述”\n登记新问题：回复“登记 问题描述”\n/取消 停止生成；/答案 [编号] 查看状态\n/偏好 查看；设置示例 /偏好 业务 入门（风格 业务|技术，深度 入门|熟练）；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/工单 编号 查看处理进度；/附件 编号 转网页\n/身份 查看资格标签；/投递 查看未知回执\n处理人：/备注、/拒绝 编号@版本 说明；/合并 编号@版本 目标编号；/指派 编号@版本 处理人",
           true,
         );
         return;
@@ -428,11 +429,17 @@ export function registerChannel(
             `${base}/preferences`,
             { expectedVersion: preference.version },
           );
-        else if (messageText !== "/偏好") {
+        else if (messageText !== "/偏好" && messageText !== "/偏好 查看") {
           const selected = messageText.match(
             /^\/偏好 (业务|技术) (入门|熟练)$/,
           );
-          requireThat(selected, 400, "PREFERENCE_FORMAT_REQUIRED");
+          if (!selected) {
+            await send(
+              "偏好格式：查看发 /偏好 查看；设置要同时给风格和深度，示例 /偏好 业务 入门（风格 业务|技术，深度 入门|熟练）；恢复默认发 /清除偏好",
+              true,
+            );
+            return;
+          }
           preference = await command(
             actor,
             event,
@@ -830,6 +837,11 @@ export function registerChannel(
           error instanceof Fault || error instanceof WecomRejection
             ? error.code
             : "ACK_UNCONFIRMED";
+        // Syntax-class faults need the correct format, not the web console.
+        const usageHints: Record<string, string> = {
+          UNKNOWN_COMMAND_USE_HELP:
+            "未识别的命令（UNKNOWN_COMMAND_USE_HELP）。发送 /帮助 查看可用命令与格式。",
+        };
         store.put("inbox", {
           ...current,
           state:
@@ -857,7 +869,8 @@ export function registerChannel(
               // This fixed notice contains no question, answer, ID or private URL.
               event.chatType === "group"
                 ? "当前无法在群内回答。群成员访问资格需要完整核验，请在机器人单聊中提问。"
-                : `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`,
+                : (usageHints[code] ??
+                  `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`),
               true,
             );
             store.put("inbox", {

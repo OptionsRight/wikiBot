@@ -149,7 +149,7 @@ test("follow-up questions carry recent session history into generation", async (
   }
 });
 
-test("streamed answers remain private until protocol and citations are validated", async () => {
+test("streamed partials are display-only and the final validated block is authoritative", async () => {
   const full = "第一段内容。\n第二段内容。\n可继续追问：还有什么？";
   const chunks = ["第一段内容。", "\n第二段内容。", "\n可继续追问：还有什么？"];
   const t = await setup({
@@ -202,13 +202,19 @@ test("streamed answers remain private until protocol and citations are validated
     assert.equal(answer.state, "complete");
     assert.equal(answer.blocks[0].text, full);
     assert.deepEqual(answer.blocks[0].citations, ["guide"]);
-    assert.deepEqual(observed, []);
+    // Partials are visible while running so chat clients render progress;
+    // they never carry citations and are replaced by the validated block.
+    assert.ok(
+      observed.some((text) => text.length > 0 && text.length < full.length),
+      `expected a partial read, got ${JSON.stringify(observed)}`,
+    );
+    assert.ok(observed.every((text) => text.length <= full.length));
   } finally {
     await t.app.close();
   }
 });
 
-test("bare-markdown output fails without inventing citations", async () => {
+test("bare-markdown output degrades to the top retrieved page instead of failing", async () => {
   let malformed = false;
   const t = await setup({
     model: {
@@ -236,7 +242,7 @@ test("bare-markdown output fails without inventing citations", async () => {
     const created = await t.request(
       "POST",
       "/api/domains/ads/answers",
-      { question: "示例流程怎么做", sessionId: "protocol-failure" },
+      { question: "示例流程怎么做", sessionId: "protocol-fallback" },
       t.alice,
     );
     let answer = created.value;
@@ -252,9 +258,10 @@ test("bare-markdown output fails without inventing citations", async () => {
       if (answer.state !== "queued" && answer.state !== "running") break;
       await new Promise((r) => setTimeout(r, 10));
     }
-    assert.equal(answer.state, "failed");
-    assert.equal(answer.code, "MODEL_PROTOCOL_INVALID");
-    assert.deepEqual(answer.blocks, []);
+    assert.equal(answer.state, "complete");
+    assert.equal(answer.code, "ANSWER");
+    assert.match(answer.blocks[0].text, /直接是 Markdown 正文/);
+    assert.ok(answer.blocks[0].citations.length >= 1);
   } finally {
     await t.app.close();
   }

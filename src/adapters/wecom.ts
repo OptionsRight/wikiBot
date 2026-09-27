@@ -69,6 +69,10 @@ export class WecomSocket implements WecomTransport {
   }
   start(handler: (event: Inbound) => Promise<void>) {
     this.client.on("message.text", (frame) => {
+      // Ops escape hatch: dump full raw frames (may contain user-identifying
+      // data) only when explicitly enabled for local diagnosis.
+      if (process.env.WECOM_DEBUG_FRAMES === "1")
+        process.stdout.write(`WECOM_RAW_FRAME ${JSON.stringify(frame)}\n`);
       const m = frame.body;
       if (!m?.msgid || !m.from?.userid || typeof m.text?.content !== "string")
         return;
