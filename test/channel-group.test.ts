@@ -2,44 +2,127 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setup, publish } from "./helpers.js";
 import type { Inbound, WecomTransport } from "../src/adapters/wecom.js";
+import type { WecomOptions } from "../src/channel.js";
 
-test("an allowlisted group without a verified current audience receives no answer", async () => {
-  let receive!: (event: Inbound) => Promise<void>;
-  const sent: string[] = [];
-  const transport: WecomTransport = {
-    start(fn) {
-      receive = fn;
+const unavailableAudiences: [string, WecomOptions["groupAudience"]][] = [
+  ["unconfigured", undefined],
+  ["missing", async () => undefined],
+  [
+    "incomplete",
+    async () => ({
+      userIds: ["alice"],
+      complete: false,
+      expiresAt: Date.now() + 1000,
+    }),
+  ],
+  [
+    "expired",
+    async () => ({
+      userIds: ["alice"],
+      complete: true,
+      expiresAt: Date.now() - 1000,
+    }),
+  ],
+  [
+    "unauthorized member",
+    async () => ({
+      userIds: ["alice", "stranger"],
+      complete: true,
+      expiresAt: Date.now() + 1000,
+    }),
+  ],
+  [
+    "directory failure",
+    async () => {
+      throw new Error("private directory failure details");
     },
-    close() {},
-    async reply(_e, _s, text) {
-      sent.push(text);
-    },
-  };
-  const t = await setup({
-    wecom: {
-      botId: "test",
-      domain: "ads",
-      members: { alice: "alice" },
-      groups: ["group"],
-      transport,
-    },
-  });
-  try {
-    await publish(t);
-    await receive({
-      id: "g1",
-      botId: "test",
-      userId: "alice",
-      chatType: "group",
-      chatId: "group",
-      text: "@bot 示例流程怎么做",
-      replyContext: {},
+  ],
+];
+
+for (const [scenario, groupAudience] of unavailableAudiences)
+  test(`an allowlisted group without a verified audience receives only single-chat guidance (${scenario})`, async () => {
+    let receive!: (event: Inbound) => Promise<void>;
+    let modelCalls = 0;
+    const sent: { text: string; finish: boolean }[] = [];
+    const transport: WecomTransport = {
+      start(fn) {
+        receive = fn;
+      },
+      close() {},
+      async reply(_e, _s, text, finish) {
+        sent.push({ text, finish });
+      },
+    };
+    const t = await setup({
+      model: {
+        async generate() {
+          modelCalls++;
+          throw new Error("must not generate group knowledge");
+        },
+      },
+      wecom: {
+        botId: "test",
+        domain: "ads",
+        members: { alice: "alice" },
+        groups: ["group"],
+        groupAudience,
+        transport,
+      },
     });
-    assert.deepEqual(sent, []);
-  } finally {
-    await t.app.close();
-  }
-});
+    try {
+      const event: Inbound = {
+        id: "g1",
+        botId: "test",
+        userId: "alice",
+        chatType: "group",
+        chatId: "group",
+        text: "@bot 示例流程怎么做",
+        replyContext: {},
+      };
+      await receive(event);
+      await receive(event);
+      assert.equal(
+        sent.length,
+        1,
+        "an addressed group request must not disappear silently",
+      );
+      assert.match(sent[0]!.text, /群成员.*核验.*单聊/);
+      assert.doesNotMatch(
+        sent[0]!.text,
+        /示例流程|guide|答案|广告|private|alice|http/,
+      );
+      assert.equal(sent[0]!.finish, true);
+      assert.equal(modelCalls, 0);
+      const receipts = (
+        await t.request(
+          "GET",
+          "/api/domains/ads/channel-receipts",
+          undefined,
+          t.alice,
+        )
+      ).value;
+      assert.equal(receipts.length, 1);
+      assert.equal(receipts[0].state, "acked");
+      assert.equal(receipts[0].code, "GROUP_AUDIENCE_UNKNOWN");
+      assert.equal(receipts[0].complete, false);
+      assert.equal(receipts[0].answerId, undefined);
+      // The public notice still requires an eligible sender, an allowed group,
+      // and a mention. It must not become an unsolicited group message.
+      await receive({ ...event, id: "other-group", chatId: "unknown" });
+      await receive({ ...event, id: "not-addressed", text: "示例流程怎么做" });
+      await receive({ ...event, id: "unknown-sender", userId: "unmapped" });
+      const revoked = await t.request("PUT", "/api/domains/ads/members/alice", {
+        role: "member",
+        enabled: false,
+        expectedVersion: 1,
+      });
+      assert.equal(revoked.status, 200);
+      await receive({ ...event, id: "revoked-sender" });
+      assert.equal(sent.length, 1);
+    } finally {
+      await t.app.close();
+    }
+  });
 
 test("audience changes stop delivery and group commands never reveal private tickets", async () => {
   let receive!: (event: Inbound) => Promise<void>,
@@ -81,7 +164,9 @@ test("audience changes stop delivery and group commands never reveal private tic
   try {
     await publish(t);
     await receive(event("changed", "示例流程怎么做"));
-    assert.deepEqual(sent, []);
+    assert.equal(sent.length, 1);
+    assert.match(sent[0]!, /单聊/);
+    assert.doesNotMatch(sent[0]!, /测试模型|guide|答案|私人秘密/);
     changing = false;
     const ticket = (
       await t.request(

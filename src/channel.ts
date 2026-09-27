@@ -204,6 +204,7 @@ export function registerChannel(
     if (stopping || event.botId !== options.botId || event.text.length > 16000)
       return;
     let audienceKey: string | undefined;
+    let audienceUnavailable = false;
     if (event.chatType === "group") {
       // Group answers are visible to everyone: only allowlisted groups,
       // only messages that mention the bot, and only mapped members.
@@ -212,7 +213,9 @@ export function registerChannel(
       try {
         audienceKey = await verifyAudience(event);
       } catch {
-        return;
+        // Record the request and send only fixed, public guidance below.
+        // Missing audience verification must never reach knowledge generation.
+        audienceUnavailable = true;
       }
     } else if (event.chatType !== "single") return;
     const subject = Object.hasOwn(options.members, event.userId)
@@ -246,6 +249,7 @@ export function registerChannel(
         });
       });
       if (!receipt) return;
+      requireThat(!audienceUnavailable, 403, "GROUP_AUDIENCE_UNKNOWN");
       const base = `/api/domains/${encodeURIComponent(domain)}`;
       const conversationId = hash([
         domain,
@@ -838,11 +842,6 @@ export function registerChannel(
         });
         if (current.state === "processing")
           try {
-            requireThat(
-              (await verifyAudience(event)) === audienceKey,
-              403,
-              "GROUP_AUDIENCE_CHANGED",
-            );
             own();
             access(store, actor, domain);
             store.put("inbox", {
@@ -854,7 +853,11 @@ export function registerChannel(
             await options.transport.reply(
               event,
               rid,
-              `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`,
+              // A group error can mean the audience is no longer authorized.
+              // This fixed notice contains no question, answer, ID or private URL.
+              event.chatType === "group"
+                ? "当前无法在群内回答。群成员访问资格需要完整核验，请在机器人单聊中提问。"
+                : `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`,
               true,
             );
             store.put("inbox", {

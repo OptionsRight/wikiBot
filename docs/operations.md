@@ -61,7 +61,7 @@ WECOM_ENABLED=1 才连接，使用 runtime Bot ID/Secret、固定领域及已核
 
 `tools/wecom-dialogue-smoke.ts` 是限时双向联调助手，使用独立内存测试数据和合成模型。标准输入的一行 JSON 包含 botId、botSecret、userId（实际回调标识）及 minutes（1–30，默认 20）。必须通过管道提供凭据，或在启动前关闭终端回显（`stty -echo`，完成后用 `stty echo` 恢复）；`readline` 本身不负责关闭终端回显。就绪后仅接受指定 bot、单聊和确切回调标识，记录脱敏事件及回执，不读取真实 Wiki。标准输入发送 `status` 查看连接，发送 `stop` 关闭，也会在期限到达后自动关闭。示例模型延迟用于命中取消窗口，当前默认应用期限15秒；必须记录实际期限和延迟。这不是公司模型性能测试，历史10秒实验保留其原始语义。
 
-采用[企业微信官方 SDK](https://github.com/WecomTeam/aibot-node-sdk)，一个数据库的同 bot 只有一个有效连接租约。默认服务器未配置可信完整群目录，即使 allowlist 有群也拒绝群回答；适配 provider 必须返回完整当前受众，发送前重验全部成员。单聊例子：
+采用[企业微信官方 SDK](https://github.com/WecomTeam/aibot-node-sdk)，一个数据库的同 bot 只有一个有效连接租约。默认服务器未配置可信完整群目录，即使 allowlist 有群也拒绝群知识回答；获准成员在已配置群中 @机器人时，会收到固定的群成员核验/转单聊提示，记录投递回执但不生成答案。未配置群、未 @机器人、未绑定或已停用成员仍不响应。适配 provider 必须返回完整当前受众，发送前重验全部成员。单聊例子：
 
 ```text
 示例流程怎么做？
