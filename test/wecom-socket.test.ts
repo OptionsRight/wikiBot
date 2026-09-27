@@ -82,3 +82,53 @@ test("the installed WeCom SDK sends proactive messages to the userid and disting
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
+
+test("the supervisor force-reconnects after the server kicks the bot offline", async () => {
+  const server = new WebSocketServer({ host: "127.0.0.1", port: 0 });
+  await once(server, "listening");
+  const address = server.address();
+  assert.ok(address && typeof address !== "string");
+  let connections = 0;
+  server.on("connection", (ws) => {
+    connections += 1;
+    ws.on("message", (raw) => {
+      const frame = JSON.parse(raw.toString());
+      if (frame.cmd === "aibot_subscribe")
+        ws.send(JSON.stringify({ headers: frame.headers, errcode: 0 }));
+    });
+  });
+  const socket = new WecomSocket("test-bot", "synthetic-secret", {
+    wsUrl: `ws://127.0.0.1:${address.port}`,
+    supervision: { intervalMs: 40, reconnectAfterMs: 200 },
+  });
+  socket.start(() => Promise.resolve());
+  try {
+    await delay(400);
+    assert.equal(connections, 1);
+    assert.ok(socket.ready());
+    // Server kick: the SDK marks the connection manual-closed and, by
+    // design, never reconnects on its own after a duplicate-bot kick.
+    for (const client of server.clients)
+      client.send(
+        JSON.stringify({
+          cmd: "aibot_event_callback",
+          headers: { req_id: "kick" },
+          body: { event: { eventtype: "disconnected_event" } },
+        }),
+      );
+    await delay(150);
+    assert.ok(!socket.ready());
+    assert.equal(
+      connections,
+      1,
+      "SDK must not reconnect by itself after a kick",
+    );
+    await delay(700);
+    assert.ok(socket.ready(), "supervisor should have rebuilt the connection");
+    assert.ok(connections >= 2);
+  } finally {
+    socket.close();
+    for (const ws of server.clients) ws.terminate();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});

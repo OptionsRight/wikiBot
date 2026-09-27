@@ -43,8 +43,24 @@ function refusal(error: unknown): WecomRejection | undefined {
 }
 export class WecomSocket implements WecomTransport {
   private client: InstanceType<typeof AiBot.WSClient>;
+  private readonly botId: string;
   private authenticated = false;
-  constructor(botId: string, secret: string, options: { wsUrl?: string } = {}) {
+  private readonly supervision: { intervalMs: number; reconnectAfterMs: number };
+  private supervisor?: NodeJS.Timeout;
+  private notReadySince?: number;
+  constructor(
+    botId: string,
+    secret: string,
+    options: {
+      wsUrl?: string;
+      supervision?: { intervalMs?: number; reconnectAfterMs?: number };
+    } = {},
+  ) {
+    this.botId = botId;
+    this.supervision = {
+      intervalMs: options.supervision?.intervalMs ?? 30_000,
+      reconnectAfterMs: options.supervision?.reconnectAfterMs ?? 60_000,
+    };
     // -1 = reconnect forever with exponential backoff. A finite count lets a
     // network blip longer than the retry window leave the bot silently deaf
     // until a process restart.
@@ -56,27 +72,60 @@ export class WecomSocket implements WecomTransport {
       requestTimeout: 3000,
       logger: { debug() {}, info() {}, warn() {}, error() {} },
     });
-    const log = (state: string) =>
-      process.stdout.write(`WECOM_SOCKET ${botId} ${state}\n`);
     this.client.on("error", (error) => {
-      log(`error ${error instanceof Error ? error.message : String(error)}`);
+      this.log(`error ${error instanceof Error ? error.message : String(error)}`);
     });
     this.client.on("authenticated", () => {
       this.authenticated = true;
-      log("authenticated");
+      this.log("authenticated");
     });
     this.client.on("disconnected", () => {
       this.authenticated = false;
-      log("disconnected");
+      this.log("disconnected");
     });
     this.client.on("reconnecting", (attempt) => {
       this.authenticated = false;
-      log(`reconnecting attempt=${attempt}`);
+      this.log(`reconnecting attempt=${attempt}`);
     });
     this.client.on("event.disconnected_event", () => {
       this.authenticated = false;
-      log("event.disconnected_event");
+      this.log("event.disconnected_event");
     });
+  }
+  private log(state: string) {
+    process.stdout.write(`WECOM_SOCKET ${this.botId} ${state}\n`);
+  }
+  // The SDK's own heartbeat (ping/pong with a missed-ack limit) detects dead
+  // connections, and unlimited reconnect covers network drops. Two states
+  // still never recover on their own: a duplicate bot connection kicking us
+  // offline (the SDK deliberately refuses to reconnect) and auth-failure
+  // exhaustion. This watchdog force-rebuilds the connection when the socket
+  // has stayed not-ready past the grace window.
+  private supervise() {
+    if (this.ready()) {
+      this.notReadySince = undefined;
+      return;
+    }
+    const now = Date.now();
+    this.notReadySince ??= now;
+    const waited = now - this.notReadySince;
+    if (waited < this.supervision.reconnectAfterMs) return;
+    this.notReadySince = now; // next forced attempt waits a fresh window
+    this.log(
+      `supervisor: not ready for ${Math.round(waited / 1000)}s, forcing reconnect`,
+    );
+    try {
+      // disconnect() clears the started flag so connect() cannot be blocked
+      // by its already-connected guard, and cancels pending SDK retries.
+      this.client.disconnect();
+      this.client.connect();
+    } catch (error) {
+      this.log(
+        `supervisor: reconnect failed ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
   }
   start(handler: (event: Inbound) => Promise<void>) {
     this.client.on("message.text", (frame) => {
@@ -98,6 +147,12 @@ export class WecomSocket implements WecomTransport {
       }).catch(() => {});
     });
     this.client.connect();
+    if (this.supervisor) clearInterval(this.supervisor);
+    this.supervisor = setInterval(
+      () => this.supervise(),
+      this.supervision.intervalMs,
+    );
+    this.supervisor.unref();
   }
   async reply(event: Inbound, stream: string, text: string, finish: boolean) {
     try {
@@ -129,6 +184,7 @@ export class WecomSocket implements WecomTransport {
     }
   }
   close() {
+    if (this.supervisor) clearInterval(this.supervisor);
     this.authenticated = false;
     this.client.disconnect();
   }
