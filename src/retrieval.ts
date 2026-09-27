@@ -24,7 +24,11 @@ const indexCache = new WeakMap<Bundle, Map<Page, PageIndex>>();
 
 function tokenize(text: string): string[] {
   const tokens: string[] = [],
-    runs = text.toLowerCase().match(/[\p{Script=Han}]+|[\p{L}\p{N}]+/gu) ?? [];
+    // \p{L} includes Han, so the non-Han run must subtract it: otherwise a
+    // segment like "cap介绍" fuses into one token that matches no page.
+    runs = text
+      .toLowerCase()
+      .match(/[\p{Script=Han}]+|[[\p{L}\p{N}]--\p{Script=Han}]+/gv) ?? [];
   for (const run of runs) {
     if (!/^\p{Script=Han}+$/u.test(run)) {
       tokens.push(run);

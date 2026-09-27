@@ -362,7 +362,7 @@ export class AnswerService {
             {
               sequence: 1,
               type: "status",
-              text: "当前已发布知识尚未覆盖该问题；可通过 /登记 提交问题，由知识负责人处理。",
+              text: "未能检索到与该问题相关的已发布页面；可通过 /登记 提交问题，由知识负责人处理。",
               citations: [],
             },
           ],
