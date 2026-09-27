@@ -25,6 +25,7 @@ import {
   type OperationalRetention,
 } from "./operations.js";
 import { registerChannel, type WecomOptions } from "./channel.js";
+import { registerAnswerStyle } from "./answer-style-routes.js";
 import { cookieValue, registerAuth, type SsoOptions } from "./auth.js";
 import { readFile } from "node:fs/promises";
 
@@ -196,6 +197,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   for (const [url, file, type] of [
     ["/", "index.html", "text/html"],
     ["/app.js", "app.js", "text/javascript"],
+    ["/answer-style.js", "answer-style.js", "text/javascript"],
     ["/app.css", "app.css", "text/css"],
   ])
     app.get(url!, async (_request, reply) =>
@@ -318,6 +320,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     return store.auditLog(path(request, "domain"));
   });
   registerPublication(app, store);
+  registerAnswerStyle(app, store);
   registerGovernance(app, store);
   registerEvaluations(app, store, options.model);
   const answers = new AnswerService(store, options.model);

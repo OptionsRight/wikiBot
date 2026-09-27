@@ -1,3 +1,4 @@
+import { createAnswerStylePanel } from "./answer-style.js";
 const $ = (id) => document.getElementById(id);
 let token = "",
   me,
@@ -36,6 +37,28 @@ async function api(url, method = "GET", payload) {
   return data;
 }
 const base = () => `/api/domains/${encodeURIComponent(domain)}`;
+const answerStylePanel = createAnswerStylePanel({
+  api,
+  domain: () => domain,
+  onPublished: () => changeDomain(),
+  onBusy: (busy) => {
+    $("domain").disabled = busy;
+  },
+});
+function preferenceHint() {
+  const style =
+    $("style").value === "technical"
+      ? "技术：关注实现、配置与异常边界"
+      : "业务：关注目标、步骤与结果";
+  const depth =
+    $("depth").value === "experienced"
+      ? "熟练：结论先行，精简背景"
+      : "入门：解释必要背景与术语";
+  $("preference-hint").textContent =
+    `${style}；${depth}。只调整表达，不改变权限和知识依据。`;
+}
+$("style").onchange = preferenceHint;
+$("depth").onchange = preferenceHint;
 function bind(id, action) {
   $(id).addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -128,6 +151,8 @@ $("domain").onchange = async () => {
   }
 };
 async function changeDomain() {
+  $("answer-style-nav").hidden = true;
+  answerStylePanel.clear();
   $("access-nav").hidden = !me.platform;
   if (me.platform) await listMembers();
   let grant;
@@ -143,10 +168,12 @@ async function changeDomain() {
   $("identity").textContent =
     `${me.subject} · ${grant.role === "admin" ? "知识管理员" : "成员"} · ${(grant.tags ?? []).map((t) => (t === "technical" ? "技术" : "业务")).join(" / ") || "未设置表达标签"}`;
   $("admin-nav").hidden = grant.role !== "admin";
+  $("answer-style-nav").hidden = grant.role !== "admin";
   const pref = await api(`${base()}/preferences`);
   prefVersion = pref.version;
   $("style").value = pref.style;
   $("depth").value = pref.depth;
+  preferenceHint();
   try {
     knowledge = await api(`${base()}/knowledge`);
   } catch (e) {
@@ -156,6 +183,16 @@ async function changeDomain() {
   renderKnowledge();
   await listTickets();
   if (grant.role === "admin") await listAdmin();
+  if (grant.role === "admin") {
+    try {
+      await answerStylePanel.load();
+    } catch (e) {
+      $("answer-style-status").textContent =
+        e.message === "KNOWLEDGE_UNAVAILABLE"
+          ? "请先发布知识，再配置回答话术。"
+          : `无法载入话术配置：${e.message}`;
+    }
+  }
 }
 for (const b of document.querySelectorAll("[data-view]"))
   b.onclick = () => {
@@ -313,6 +350,7 @@ $("clear-preferences").onclick = async () => {
     prefVersion = p.version;
     $("style").value = p.style;
     $("depth").value = p.depth;
+    preferenceHint();
     $("remember").checked = false;
   } catch (e) {
     error(e);

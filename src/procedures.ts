@@ -6,6 +6,7 @@ import {
 import { validateSourceLinks } from "./source-formats.js";
 import { z } from "zod";
 import { hash, requireThat } from "./core.js";
+import { answerTemplatesSchema } from "./answer-style.js";
 
 // A published knowledge package is pages + golden QA cases + pinned config.
 // The structured procedure model (inputs/branches/nodes/guidance) was removed
@@ -48,15 +49,7 @@ export const bundleSchema = z
     config: z
       .object({
         domainLabel: z.string().min(1).max(100).optional(),
-        answerTemplates: z
-          .object({
-            business: z.string().min(1).max(2000),
-            technical: z.string().min(1).max(2000),
-            beginner: z.string().min(1).max(2000),
-            experienced: z.string().min(1).max(2000),
-          })
-          .strict()
-          .optional(),
+        answerTemplates: answerTemplatesSchema.optional(),
         model: z.string().min(1).max(200),
         modelRevision: z.string().min(1).max(200),
         promptVersion: z.literal("1"),

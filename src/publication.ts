@@ -38,6 +38,11 @@ export interface Release extends Entity {
   reviewer?: string;
   reviewEvidence?: string;
   modelEpoch: number;
+  answerStyle?: {
+    sourceReleaseId: string;
+    draftVersion: number;
+    caseIds: string[];
+  };
 }
 export interface ModelState extends Entity {
   model: string;

@@ -81,6 +81,36 @@ textarea {
   min-height: 100px;
   resize: vertical;
 }
+fieldset {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+legend {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.secondary {
+  background: #e1ebee;
+  color: #214754;
+}
+#answer-style-form textarea {
+  min-height: 235px;
+  font-weight: 400;
+}
+#answer-style-previews article {
+  margin: 0;
+}
+#answer-style-previews .pre {
+  font-size: 15px;
+}
+#answer-style-status {
+  padding: 12px 16px;
+  background: #e1ebee;
+  border-radius: 8px;
+}
 button,
 #sso {
   cursor: pointer;

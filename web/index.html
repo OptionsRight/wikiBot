@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>wikiBot · 领域知识</title>
     <link rel="stylesheet" href="/app.css" />
-    <script src="/app.js" defer></script>
+    <script src="/app.js" type="module"></script>
   </head>
   <body>
     <header>
@@ -38,7 +38,10 @@
           ><button data-view="tickets">工单</button
           ><button data-view="knowledge">知识</button
           ><button data-view="admin" id="admin-nav" hidden>维护与发布</button
-          ><button data-view="access" id="access-nav" hidden>成员配置</button>
+          ><button data-view="access" id="access-nav" hidden>成员配置</button
+          ><button data-view="answer-style" id="answer-style-nav" hidden>
+            回答风格
+          </button>
         </nav>
         <section id="ask" class="view">
           <h1>这次想了解什么？</h1>
@@ -63,6 +66,7 @@
                 </select></label
               >
             </div>
+            <p id="preference-hint" class="meta" aria-live="polite"></p>
             <label class="check"
               ><input id="remember" type="checkbox" />保存为我的偏好</label
             ><button>提问</button
@@ -145,6 +149,115 @@
               ><input id="member-technical" type="checkbox" />技术人员</label
             >
             <button>保存成员配置</button>
+          </form>
+        </section>
+        <section id="answer-style" class="view" hidden>
+          <h1>让回答更适合不同的人</h1>
+          <p>
+            为业务人员和技术人员设置讲解方式，再按入门或熟练调整深度。话术只影响表达，知识依据和必要步骤保持一致。
+          </p>
+          <p id="answer-style-status" role="status" aria-live="polite"></p>
+          <form id="answer-style-form">
+            <fieldset id="answer-style-fields">
+              <legend>1. 编辑回答话术</legend>
+              <p class="meta">
+                保存草稿不会影响正在使用的机器人。以下四段话术会按用户的视角与深度组合使用。
+              </p>
+              <div class="columns">
+                <label
+                  >业务人员<textarea
+                    id="template-business"
+                    maxlength="2000"
+                    required
+                  ></textarea
+                  ><span class="meta"
+                    >强调业务目标、操作和结果，少用实现术语。</span
+                  ></label
+                >
+                <label
+                  >技术人员<textarea
+                    id="template-technical"
+                    maxlength="2000"
+                    required
+                  ></textarea
+                  ><span class="meta"
+                    >强调处理链路、接口、配置和异常边界。</span
+                  ></label
+                >
+                <label
+                  >入门深度<textarea
+                    id="template-beginner"
+                    maxlength="2000"
+                    required
+                  ></textarea
+                  ><span class="meta"
+                    >补充必要背景，解释首次出现的术语。</span
+                  ></label
+                >
+                <label
+                  >熟练深度<textarea
+                    id="template-experienced"
+                    maxlength="2000"
+                    required
+                  ></textarea
+                  ><span class="meta"
+                    >结论先行，精简背景，保留必要条件与步骤。</span
+                  ></label
+                >
+              </div>
+              <label
+                >用于对比的知识问题<select
+                  id="answer-style-case"
+                  required
+                ></select
+              ></label>
+              <button type="submit">保存话术草稿</button>
+              <button
+                type="button"
+                id="answer-style-defaults"
+                class="secondary"
+              >
+                填入推荐话术
+              </button>
+              <button type="button" id="answer-style-reload" class="secondary">
+                重新加载
+              </button>
+              <button type="button" id="answer-style-preview">
+                保存并预览四种回答
+              </button>
+            </fieldset>
+          </form>
+          <section aria-labelledby="answer-style-preview-title">
+            <h2 id="answer-style-preview-title">2. 对比实际回答</h2>
+            <p class="meta">
+              使用同一道知识问题和同一版本资料调用模型。自动检查会核对回答状态与预期引用；仍需你核对事实、必要步骤、术语和口吻。
+            </p>
+            <div id="answer-style-previews" class="columns"></div>
+          </section>
+          <form id="answer-style-publish-form">
+            <fieldset id="answer-style-publish-fields" disabled>
+              <legend>3. 检查并发布</legend>
+              <label class="check"
+                ><input
+                  type="checkbox"
+                  id="answer-style-confirm"
+                  required
+                />我已核对四种回答的表达、必要步骤和知识依据</label
+              >
+              <label
+                >复核说明<textarea
+                  id="answer-style-evidence"
+                  minlength="10"
+                  maxlength="2000"
+                  required
+                  placeholder="记录本次检查结果，例如术语准确、业务步骤完整，四种表达均适合对应人群"
+                ></textarea>
+              </label>
+              <button>检查其余样例并发布话术</button>
+              <p class="meta">
+                发布前会检查该知识版本的全部样例。发布后，新问题使用新话术；已有答案保留原版本。
+              </p>
+            </fieldset>
           </form>
         </section>
         <section id="admin" class="view" hidden>
