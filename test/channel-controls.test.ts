@@ -416,3 +416,62 @@ test("preference command near-misses reply with usage instead of a raw fault cod
     await t.app.close();
   }
 });
+
+test("stream replies convert markdown to typographic hierarchy, never raw symbols", async () => {
+  let receive!: (event: Inbound) => Promise<void>;
+  const sent: string[] = [];
+  const transport: WecomTransport = {
+    start(fn) {
+      receive = fn;
+    },
+    close() {},
+    async reply(_e, _s, text) {
+      sent.push(text);
+    },
+  };
+  const t = await setup({
+    model: {
+      async generate(r) {
+        const pages = JSON.parse(r.prompt).pages as { id: string }[];
+        return {
+          text: JSON.stringify({
+            text: "## 开户流程说明\n\n- **第一步**：创建账户\n- 第二步：绑定主体\n\n> 注意：归因窗口默认 7 天\n",
+            citations: [pages[0]!.id],
+          }),
+          model: r.model,
+          inputTokens: 1,
+          outputTokens: 1,
+          firstTextMs: 1,
+          totalMs: 1,
+          stopReason: "end_turn",
+        };
+      },
+    },
+    wecom: {
+      botId: "test",
+      domain: "ads",
+      members: { alice: "alice" },
+      transport,
+    },
+  });
+  try {
+    await publish(t);
+    await receive({
+      id: "markdown-formatting",
+      botId: "test",
+      userId: "alice",
+      chatType: "single",
+      text: "开户流程怎么做",
+      replyContext: {},
+    });
+    const final = sent.at(-1)!;
+    assert.match(final, /【开户流程说明】/);
+    assert.match(final, /· 第一步：创建账户/);
+    assert.match(final, /※ 注意：归因窗口默认 7 天/);
+    assert.doesNotMatch(final, /\*\*/);
+    assert.doesNotMatch(final, /^#{1,6} /m);
+    assert.doesNotMatch(final, /^- /m);
+  } finally {
+    await t.app.close();
+  }
+});

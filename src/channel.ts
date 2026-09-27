@@ -62,17 +62,22 @@ interface Lease extends Entity {
 function plain(text: string) {
   return text.replace(/[\\`*_{}\[\]()#+.!<>|]/g, "\\$&");
 }
-// The WeCom chat bubble renders a wide markdown subset: bold, italic,
-// quotes, ordered/unordered lists, inline code and links all display
-// styled (verified 2026-09-27 against the live bot). Heading markers are
-// silently stripped without any style, HTML tags show literally, and
-// `*` bullets are not recognized — degrade only those: headings become
-// bold lines, `*`/`+` bullets become `-`, fenced blocks become text.
+// The chat REPLY surface (replyStream) shows plain text: markdown syntax
+// displays literally there (live-verified 2026-09-27 on the desktop client
+// — **, - and ` all raw), even though PROACTIVE markdown messages render
+// styled in the same client; the SDK's "supports Markdown" note does not
+// hold for replies. Convert the model's markdown into typographic
+// hierarchy instead: 【】 headings, · bullets, ※ quotes, ——— rules.
 function wecomFormat(text: string) {
   return text
-    .replace(/^#{1,6}\s*(.+)$/gm, "**$1**")
-    .replace(/\*\*\*\*([^*\n]+)\*\*\*\*/g, "**$1**")
-    .replace(/^[*+]\s+/gm, "- ")
+    .replace(/^#{1,6}\s*(.+)$/gm, "【$1】")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/`([^`\n]+)`/g, "$1")
+    .replace(/^>\s?(.*)$/gm, "※ $1")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1（$2）")
+    .replace(/^[-*+]\s+/gm, "· ")
+    .replace(/^(\d+)\.\s+/gm, "$1. ")
     .replace(/^---+\s*$/gm, "———")
     .replace(/```\w*\n([\s\S]*?)```/g, (_match, code: string) => code.trim());
 }
@@ -176,13 +181,11 @@ export function registerChannel(
   }
   async function verifyAudience(event: Inbound) {
     if (event.chatType !== "group") return;
-    requireThat(
-      event.chatId &&
-        options.groups?.includes(event.chatId) &&
-        options.groupAudience,
-      403,
-      "GROUP_AUDIENCE_UNKNOWN",
-    );
+    // Audience verification is optional: with no directory wired, the
+    // allowlist + @-mention + mapped-sender gates carry the request and the
+    // chat id keys the session. When a checker IS wired, every group member
+    // must be an authorized reader before any knowledge is generated.
+    if (!options.groupAudience) return hash([event.chatId!]);
     const audience = await options.groupAudience(event.chatId);
     requireThat(
       audience?.complete &&
@@ -210,7 +213,10 @@ export function registerChannel(
       // Group answers are visible to everyone: only allowlisted groups,
       // only messages that mention the bot, and only mapped members.
       if (!event.chatId || !options.groups?.includes(event.chatId)) return;
-      if (!/^@\S+\s+/.test(event.text)) return;
+      // WeCom delivers a group message to the bot only when it @mentions the
+      // bot, and the mention can sit anywhere in the text (leading, middle
+      // or trailing "…？ @机器人").
+      if (!event.text.includes("@")) return;
       try {
         audienceKey = await verifyAudience(event);
       } catch {
@@ -223,10 +229,13 @@ export function registerChannel(
       ? options.members[event.userId]
       : undefined;
     if (!subject) return;
-    const messageText =
+    // Strip every mention token; keep dots (e-mail addresses are content).
+    const messageText = (
       event.chatType === "group"
-        ? event.text.replace(/^@\S+\s*/, "").trim()
-        : event.text;
+        ? event.text.replace(/@[^\s@.]+\s*/g, "")
+        : event.text
+    ).trim();
+    if (!messageText) return;
     const actor = { subject, platform: false },
       domain = options.domain,
       rid = hash([options.botId, event.id]);
@@ -358,10 +367,11 @@ export function registerChannel(
           });
         });
       }
-      if (
-        event.chatType === "group" &&
-        /^(?:\/|反馈[：:\s]|登记[：:\s]|我要登记|帮我登记)/.test(messageText)
-      ) {
+      // Natural 反馈/登记 work in groups too (the loop for the answer just
+      // shown there); only personal slash commands stay single-chat.
+      const trackHint =
+        event.chatType === "group" ? "到机器人单聊发送" : "发送";
+      if (event.chatType === "group" && messageText.startsWith("/")) {
         await send(
           `个人答案、工单与维护操作请使用机器人单聊或认证网页：${origin ?? "请联系管理员获取地址"}`,
           true,
@@ -529,7 +539,7 @@ export function registerChannel(
             category: "question",
           });
         await send(
-          `问题已登记：${ticket.id}\n状态：${ticket.state}\n处理进度可发送 /工单 ${ticket.id} 查看。`,
+          `问题已登记：${ticket.id}\n状态：${ticket.state}\n处理进度可${trackHint} /工单 ${ticket.id} 查看。`,
           true,
         );
         return;
@@ -600,7 +610,7 @@ export function registerChannel(
           answerId,
         });
         await send(
-          `反馈已登记：${ticket.id}\n知识负责人处理后可在此跟踪进度（/工单 ${ticket.id}）。`,
+          `反馈已登记：${ticket.id}\n知识负责人处理后可${trackHint} /工单 ${ticket.id} 跟踪进度。`,
           true,
         );
         return;
@@ -781,9 +791,7 @@ export function registerChannel(
           )
           .join("\n\n");
         const guidance =
-          event.chatType === "group"
-            ? "\n——\n反馈或登记请使用机器人单聊。"
-            : "\n——\n反馈本条答案：回复“反馈 问题描述”；登记新问题：回复“登记 问题描述”。";
+          "\n——\n反馈本条答案：回复“反馈 问题描述”；登记新问题：回复“登记 问题描述”。";
         const content = finish
           ? `${body}\n${status}${guidance}`
           : `${body}\n${status}`;
