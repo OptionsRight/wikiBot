@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { buildApp, type AppOptions } from "../src/app.js";
 import { hash } from "../src/core.js";
+import type { Bundle } from "../src/procedures.js";
 
 export async function setup(options: Partial<AppOptions> = {}) {
   const app = await buildApp({
@@ -9,10 +10,11 @@ export async function setup(options: Partial<AppOptions> = {}) {
     bootstrap: { token: "operator-test", subject: "operator" },
     model: {
       async generate(r) {
+        const pages = (JSON.parse(r.prompt).pages ?? []) as { id: string }[];
         return {
           text: JSON.stringify({
-            text: "这是测试模型的解释。",
-            citations: ["guide"],
+            text: "这是测试模型的回答。",
+            citations: pages.slice(0, 1).map((p) => p.id),
           }),
           model: r.model,
           inputTokens: 1,
@@ -79,88 +81,28 @@ export const page = {
   title: "示例流程",
   content: "这是测试流程。先准备材料，再提交申请，最后核对结果。",
 };
+export const billingPage = {
+  id: "billing",
+  path: "workflows/billing.md",
+  title: "结算流程",
+  content: "结算按月执行。代理商提交对账单后，财务在五个工作日内复核并打款。",
+};
 export function sampleBundle() {
   return {
-    pages: [{ ...page, hash: hash(page.content) }],
-    procedures: [
-      {
-        id: "example",
-        title: "示例流程",
-        aliases: ["示例"],
-        version: "1",
-        pageId: "guide",
-        pageHash: hash(page.content),
-        scope: "仅测试环境",
-        owner: "knowledge-owner",
-        inputs: [
-          {
-            id: "scenario",
-            type: "enum",
-            values: ["new", "existing"],
-            required: true,
-            semanticVersion: "1",
-            question: "是新申请还是已有申请？",
-          },
-        ],
-        supportedWhen: {
-          field: "scenario",
-          op: "in",
-          values: ["new", "existing"],
-        },
-        nodes: [
-          {
-            id: "prepare",
-            kind: "prerequisite",
-            text: "准备材料",
-            dependsOn: [],
-            citations: ["guide"],
-          },
-          {
-            id: "submit",
-            kind: "step",
-            text: "提交申请",
-            dependsOn: ["prepare"],
-            citations: ["guide"],
-          },
-          {
-            id: "check",
-            kind: "completion",
-            text: "核对结果",
-            dependsOn: ["prepare"],
-            citations: ["guide"],
-          },
-        ],
-        alwaysRequired: ["prepare"],
-        branches: [
-          {
-            id: "new",
-            when: { field: "scenario", op: "eq", value: "new" },
-            requiredNodes: ["submit", "check"],
-          },
-          {
-            id: "existing",
-            when: { field: "scenario", op: "eq", value: "existing" },
-            requiredNodes: ["check"],
-          },
-        ],
-      },
+    pages: [
+      { ...page, hash: hash(page.content) },
+      { ...billingPage, hash: hash(billingPage.content) },
     ],
     cases: [
       {
-        id: "new",
-        procedureId: "example",
-        question: "示例新申请",
-        inputs: { scenario: "new" },
-        expectedCode: "GUIDANCE",
-        expectedNodes: ["prepare", "submit", "check"],
+        id: "example",
+        question: "示例流程怎么走？",
+        expectedCitations: ["guide"],
       },
       {
-        id: "existing",
-        procedureId: "example",
-        question: "示例已有申请",
-        inputs: { scenario: "existing" },
-        expectedCode: "GUIDANCE",
-        expectedNodes: ["prepare", "check"],
+        id: "billing",
+        question: "代理商结算后多久打款？",
+        expectedCitations: ["billing"],
       },
     ],
     config: {
@@ -171,18 +113,20 @@ export function sampleBundle() {
       retrievalVersion: "1",
       protocolVersion: "1",
       evaluationVersion: "1",
-    },
+    } as const,
   };
 }
 export async function publish(
   t: Awaited<ReturnType<typeof setup>>,
-  bundle = sampleBundle(),
+  bundle: Bundle = sampleBundle(),
+  domain = "ads",
+  admin = t.admin,
 ) {
   const candidate = await t.request(
     "POST",
-    "/api/domains/ads/submissions",
+    `/api/domains/${domain}/submissions`,
     bundle,
-    t.admin,
+    admin,
   );
   if (candidate.status !== 201)
     throw new Error(JSON.stringify(candidate.value));
@@ -190,35 +134,35 @@ export async function publish(
   for (const c of bundle.cases) {
     const run = await t.request(
       "POST",
-      `/api/domains/ads/releases/${r.id}/evaluations`,
+      `/api/domains/${domain}/releases/${r.id}/evaluations`,
       { caseId: c.id, descriptorHash: r.descriptorHash },
-      t.admin,
+      admin,
     );
-    if (run.value.state !== "complete")
+    if (run.value.state !== "complete" || run.value.verdict !== "pass")
       throw new Error(JSON.stringify(run.value));
   }
   const review = await t.request(
     "POST",
-    `/api/domains/ads/releases/${r.id}/review`,
+    `/api/domains/${domain}/releases/${r.id}/review`,
     {
       expectedVersion: r.version,
       descriptorHash: r.descriptorHash,
       evidence: "人工核对测试流程和测试模型输出",
       approved: true,
     },
-    t.admin,
+    admin,
   );
   const ready = review.value;
   const active = await t.request(
     "POST",
-    `/api/domains/ads/releases/${r.id}/activate`,
+    `/api/domains/${domain}/releases/${r.id}/activate`,
     {
       expectedVersion: ready.version,
       expectedEpoch: r.baseEpoch,
       expectedActive: r.baseActive,
       descriptorHash: r.descriptorHash,
     },
-    t.admin,
+    admin,
   );
   if (active.status !== 200) throw new Error(JSON.stringify(active.value));
   return active.value;

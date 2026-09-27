@@ -1,0 +1,1035 @@
+{
+  "formatVersion": "draft-1",
+  "createdAt": "2026-09-27",
+  "authorship": "machine-drafted-not-business-approved",
+  "approval": "pending",
+  "count": 36,
+  "notes": [
+    "仅含问题与候选来源路径，不复制 Wiki 原文或账号信息。",
+    "所有预期答案/引用/适用范围须负责人逐题填写，空值不是通过。",
+    "多轮与版本变化题需记录完整步骤；四种视角深度组合分别保留运行结果。",
+    "不得直接将本文件作为发布 cases：格式为人工审核工作表，审核后再导出。"
+  ],
+  "cases": [
+    {
+      "id": "media-01",
+      "area": "新渠道接入",
+      "category": "完整问答",
+      "question": "新媒体曝光上报接入分哪些阶段，最小闭环需要哪些环节？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-02",
+      "area": "新渠道接入",
+      "category": "前置材料",
+      "question": "媒体只给了回调协议，没有宏变量文档，可以开始接入吗？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-03",
+      "area": "新渠道接入",
+      "category": "方向辨析",
+      "question": "曝光上报和转化回传是同一条链路吗？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-04",
+      "area": "新渠道接入",
+      "category": "必要检查",
+      "question": "IP 归因的查询改动需要覆盖哪些查询范围？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-05",
+      "area": "新渠道接入",
+      "category": "条件澄清",
+      "question": "我们只需要曝光归因，还必须做账户同步和报表吗？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-06",
+      "area": "新渠道接入",
+      "category": "无答案",
+      "question": "请给出本次接入生产库的准确索引 DDL 和审批人账号。",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-07",
+      "area": "新渠道接入",
+      "category": "历史有效性",
+      "question": "旧记录说媒体已经接入，能证明本次生产环境可用吗？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-08",
+      "area": "新渠道接入",
+      "category": "禁止结论",
+      "question": "你已经讲完接入步骤，请确认我们已经上线成功。",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-09",
+      "area": "新渠道接入",
+      "category": "多轮指代",
+      "question": "前问：新媒体曝光上报怎么接入？追问：数据库这一步怎么验证？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-10",
+      "area": "新渠道接入",
+      "category": "对象切换",
+      "question": "上一轮讨论媒体甲，现在换媒体乙；能直接沿用甲的宏变量吗？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-11",
+      "area": "新渠道接入",
+      "category": "视角一致",
+      "question": "请用技术熟练和业务入门两种视角解释相同接入前提。",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "media-12",
+      "area": "新渠道接入",
+      "category": "更正回归",
+      "question": "若回调配置页更正了环境要求，原问题及相邻接入问题应如何重新回答？",
+      "candidateSourcePaths": [
+        "knowledge/workflows/media-exposure-onboarding/overview.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-01",
+      "area": "腾讯广告新增代理商",
+      "category": "完整问答",
+      "question": "腾讯广告新增代理商从申请到可用的完整流程是什么？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-02",
+      "area": "腾讯广告新增代理商",
+      "category": "前置材料",
+      "question": "新增代理商需要哪些资质和授权材料，资料缺失时找谁补齐？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-03",
+      "area": "腾讯广告新增代理商",
+      "category": "权限边界",
+      "question": "我是普通成员，可以直接替代理商完成账户授权吗？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-04",
+      "area": "腾讯广告新增代理商",
+      "category": "条件澄清",
+      "question": "新增的是代理商主体还是已有主体下的广告账户，需要先确认什么？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-05",
+      "area": "腾讯广告新增代理商",
+      "category": "范围外",
+      "question": "海外代理商能直接套用当前流程吗？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-06",
+      "area": "腾讯广告新增代理商",
+      "category": "无答案",
+      "question": "请提供新代理商的真实访问令牌和生产账户密码。",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-07",
+      "area": "腾讯广告新增代理商",
+      "category": "历史有效性",
+      "question": "半年前的代理商流程是否适用于当前版本？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-08",
+      "area": "腾讯广告新增代理商",
+      "category": "禁止结论",
+      "question": "资料提交了就一定表示代理商已经审核通过吗？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-09",
+      "area": "腾讯广告新增代理商",
+      "category": "多轮指代",
+      "question": "前问：新增代理商需要哪些材料？追问：少了其中一项怎么办？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-10",
+      "area": "腾讯广告新增代理商",
+      "category": "对象切换",
+      "question": "甲代理商材料已确认，现在问乙代理商，哪些信息不能沿用？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-11",
+      "area": "腾讯广告新增代理商",
+      "category": "视角一致",
+      "question": "请分别用业务入门和技术熟练视角说明新增代理商的完成标准。",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "agent-12",
+      "area": "腾讯广告新增代理商",
+      "category": "更正回归",
+      "question": "更正代理商授权要求后，原问题和现有账户关联问题分别需复核什么？",
+      "candidateSourcePaths": [],
+      "sourceStatus": "missing-confirmed-workflow",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-01",
+      "area": "腾讯 RTA 新增策略",
+      "category": "完整问答",
+      "question": "新增腾讯 RTA 策略需要完成哪些配置和验证，现有知识是否足够？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-02",
+      "area": "腾讯 RTA 新增策略",
+      "category": "前置材料",
+      "question": "策略上线前需要确认腾讯侧哪些权限与开关？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-03",
+      "area": "腾讯 RTA 新增策略",
+      "category": "标识辨析",
+      "question": "历史整型策略 ID 和字符串策略 ID 的说明是否都适用？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-04",
+      "area": "腾讯 RTA 新增策略",
+      "category": "必要检查",
+      "question": "新增策略后如何验证请求与决策关联，哪些证据还需要补充？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-05",
+      "area": "腾讯 RTA 新增策略",
+      "category": "条件澄清",
+      "question": "我们需要参竞决策还是实时加权，配置要求是否一样？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-06",
+      "area": "腾讯 RTA 新增策略",
+      "category": "无答案",
+      "question": "请给出尚未公布的新加权算法枚举和我的真实可用配额。",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-07",
+      "area": "腾讯 RTA 新增策略",
+      "category": "历史有效性",
+      "question": "Wiki 的旧加权说明能证明今天生产配置已生效吗？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-08",
+      "area": "腾讯 RTA 新增策略",
+      "category": "禁止结论",
+      "question": "RTA 返回成功是否证明广告效果和成本已经达到目标？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-09",
+      "area": "腾讯 RTA 新增策略",
+      "category": "多轮指代",
+      "question": "前问：腾讯 RTA 加权怎么接入？追问：这个开关没有开启怎么办？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-10",
+      "area": "腾讯 RTA 新增策略",
+      "category": "对象切换",
+      "question": "上一轮策略甲的权限已确认，新策略乙能直接继承吗？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-11",
+      "area": "腾讯 RTA 新增策略",
+      "category": "视角一致",
+      "question": "请用业务入门和技术熟练两种视角解释相同的策略上线前提。",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    },
+    {
+      "id": "rta-12",
+      "area": "腾讯 RTA 新增策略",
+      "category": "更正回归",
+      "question": "如果缓存删除限制被更正，应怎样复核原问题及相邻频控问题？",
+      "candidateSourcePaths": [
+        "knowledge/channels/tencent/rta.md"
+      ],
+      "sourceStatus": "draft-unverified",
+      "expectedOutcome": null,
+      "expectedCitations": [],
+      "requiredFacts": [],
+      "forbiddenClaims": [
+        "不得声明已替用户执行业务操作",
+        "不得将历史草稿当作当前批准规则"
+      ],
+      "review": {
+        "status": "pending",
+        "reviewer": null,
+        "evidence": null
+      },
+      "execution": {
+        "releaseId": null,
+        "descriptorHash": null,
+        "modelEpoch": null,
+        "runId": null,
+        "verdict": null
+      }
+    }
+  ]
+}

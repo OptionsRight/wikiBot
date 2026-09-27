@@ -70,3 +70,61 @@ test("authenticated members see only their granted domains; self-declared roles 
     await app.close();
   }
 });
+
+test("platform configures independent membership roles and multiple expression tags", async () => {
+  const { setup } = await import("./helpers.js");
+  const t = await setup();
+  try {
+    const update = {
+      role: "member",
+      expectedVersion: 1,
+      tags: ["business", "technical"],
+    };
+    const denied = await t.request(
+      "PUT",
+      "/api/domains/ads/members/alice",
+      update,
+      t.admin,
+    );
+    assert.equal(denied.status, 403);
+    const saved = await t.request(
+      "PUT",
+      "/api/domains/ads/members/alice",
+      update,
+    );
+    assert.equal(saved.status, 200);
+    const capability = await t.request(
+      "GET",
+      "/api/domains/ads/capabilities",
+      undefined,
+      t.alice,
+    );
+    assert.deepEqual(capability.value.tags, ["business", "technical"]);
+    assert.equal(capability.value.defaultStyle, "technical");
+    assert.equal(capability.value.role, "member");
+    assert.equal(
+      (await t.request("GET", "/api/domains/ads/releases", undefined, t.alice))
+        .status,
+      403,
+    );
+    const listed = await t.request("GET", "/api/domains/ads/members");
+    assert.equal(listed.status, 200);
+    assert.equal(
+      listed.value.find((g: { subject: string }) => g.subject === "alice")
+        .defaultStyle,
+      "technical",
+    );
+    assert.equal(
+      (await t.request("GET", "/api/domains/ads/members", undefined, t.alice))
+        .status,
+      403,
+    );
+    const preserved = await t.request("PUT", "/api/domains/ads/members/alice", {
+      role: "admin",
+      expectedVersion: 2,
+    });
+    assert.deepEqual(preserved.value.tags, ["business", "technical"]);
+  } finally {
+    await t.app.close();
+  }
+});

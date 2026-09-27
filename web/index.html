@@ -37,35 +37,19 @@
           <button data-view="ask">问答</button
           ><button data-view="tickets">工单</button
           ><button data-view="knowledge">知识</button
-          ><button data-view="admin" id="admin-nav" hidden>维护与发布</button>
+          ><button data-view="admin" id="admin-nav" hidden>维护与发布</button
+          ><button data-view="access" id="access-nav" hidden>成员配置</button>
         </nav>
         <section id="ask" class="view">
           <h1>这次想了解什么？</h1>
           <form id="question-form">
             <label
-              >流程<select id="procedure">
-                <option value="">请选择</option>
-              </select></label
-            ><label
               >问题<textarea
                 id="question"
                 required
-                placeholder="描述你要完成的事情"
+                placeholder="直接描述你的问题，机器人会检索已发布知识并回答"
               ></textarea>
             </label>
-            <div class="columns">
-              <label
-                >本次咨询对象<input
-                  id="object"
-                  placeholder="客户、策略或申请的名称" /></label
-              ><label
-                >回答形式<select id="mode">
-                  <option value="guidance">完整操作指导</option>
-                  <option value="explanation">术语或单步解释</option>
-                </select></label
-              >
-            </div>
-            <div id="inputs" class="columns"></div>
             <div class="columns">
               <label
                 >视角<select id="style">
@@ -81,11 +65,20 @@
             </div>
             <label class="check"
               ><input id="remember" type="checkbox" />保存为我的偏好</label
-            ><button>获取指导</button>
+            ><button>提问</button
+            ><button type="button" id="clear-preferences">
+              清除已保存偏好
+            </button>
           </form>
           <article id="answer" aria-live="polite"></article>
           <button id="cancel" hidden>停止生成</button>
           <form id="feedback" hidden>
+            <label
+              >处理类型<select id="feedback-category">
+                <option value="question">回答疑问或表达问题</option>
+                <option value="knowledge">来源知识需要更正</option>
+              </select></label
+            >
             <label
               >反馈说明<textarea id="feedback-text" required></textarea></label
             ><button>针对这份答案登记问题</button>
@@ -115,6 +108,44 @@
           <h1>当前知识</h1>
           <div id="page-list"></div>
           <article id="page-content"></article>
+        </section>
+        <section id="access" class="view" hidden>
+          <h1>成员资格与表达标签</h1>
+          <p>
+            仅平台管理员可修改。业务与技术标签可同时选择，默认技术优先；表达标签不授予管理权限，已保存的个人偏好优先。
+          </p>
+          <div id="member-list"></div>
+          <form id="member-form">
+            <label>成员账号<input id="member-subject" required /></label>
+            <label
+              >当前版本（新成员为 0）<input
+                id="member-version"
+                type="number"
+                min="0"
+                value="0"
+                required
+            /></label>
+            <label
+              >领域权限<select id="member-role">
+                <option value="member">普通成员</option>
+                <option value="admin">知识管理员</option>
+              </select></label
+            >
+            <label
+              ><input
+                id="member-enabled"
+                type="checkbox"
+                checked
+              />启用领域资格</label
+            >
+            <label
+              ><input id="member-business" type="checkbox" />业务人员</label
+            >
+            <label
+              ><input id="member-technical" type="checkbox" />技术人员</label
+            >
+            <button>保存成员配置</button>
+          </form>
         </section>
         <section id="admin" class="view" hidden>
           <h1>维护与发布</h1>

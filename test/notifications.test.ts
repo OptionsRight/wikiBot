@@ -35,7 +35,8 @@ test("ticket notifications reach only the mapped reporter with a stable event ID
     wecom: {
       botId: "test",
       domain: "ads",
-      members: { wecomAlice: "alice" },
+      members: { opaqueCallback: "alice" },
+      notificationRecipients: { alice: "wecomAlice" },
       transport,
       notifications: true,
     },
@@ -106,6 +107,7 @@ test("queued notices recheck access; model and withdrawal notices contain only s
       botId: "test",
       domain: "ads",
       members: { alice: "alice", bob: "bob" },
+      notificationRecipients: { alice: "alice", bob: "bob" },
       transport,
       notifications: true,
     },
@@ -132,12 +134,7 @@ test("queued notices recheck access; model and withdrawal notices contain only s
         await t.request(
           "POST",
           "/api/domains/ads/answers",
-          {
-            question: "示例",
-            sessionId,
-            objectId: "甲",
-            inputs: { scenario: "new" },
-          },
+          { question: "示例流程怎么做", sessionId },
           t.alice,
         )
       ).value;
@@ -176,7 +173,7 @@ test("queued notices recheck access; model and withdrawal notices contain only s
     assert.match(sent[0]!.text, /模型验证待确认/);
     assert.ok(sent[0]!.text.includes(delivered.id));
     assert.ok(!sent[0]!.text.includes(undelivered.id));
-    assert.doesNotMatch(sent[0]!.text, /准备材料|提交申请|私人/);
+    assert.doesNotMatch(sent[0]!.text, /这是测试模型的回答|私人/);
     await t.request(
       "POST",
       `/api/domains/ads/releases/${release.id}/revoke`,
@@ -194,7 +191,7 @@ test("queued notices recheck access; model and withdrawal notices contain only s
       (v) => v.length === 2,
     );
     assert.match(sent[1]!.text, /已失效/);
-    assert.doesNotMatch(sent[1]!.text, /准备材料|提交申请/);
+    assert.doesNotMatch(sent[1]!.text, /这是测试模型的回答/);
     await delay(150);
     assert.equal(sent.length, 2);
   } finally {
@@ -219,6 +216,7 @@ test("an unacknowledged notification survives a restart without another send", a
     botId: "test",
     domain: "ads",
     members: { alice: "alice" },
+    notificationRecipients: { alice: "alice" },
     transport,
     notifications: true,
   };
@@ -285,6 +283,7 @@ test("only an explicit server refusal can be retried; an unknown ACK stays uncer
       botId: "test",
       domain: "ads",
       members: { alice: "alice" },
+      notificationRecipients: { alice: "alice" },
       transport,
       notifications: true,
     },
@@ -352,6 +351,50 @@ test("only an explicit server refusal can be retried; an unknown ACK stays uncer
         .value.length,
       1,
     );
+  } finally {
+    await t.app.close();
+  }
+});
+
+test("a callback identity alone never becomes a proactive notification address", async () => {
+  let sends = 0;
+  const transport: WecomTransport = {
+    start() {},
+    close() {},
+    async reply() {},
+    async notify() {
+      sends++;
+      return { state: "acked" };
+    },
+  };
+  const t = await setup({
+    wecom: {
+      botId: "test",
+      domain: "ads",
+      members: { opaqueCallback: "alice" },
+      notifications: true,
+      transport,
+    },
+  });
+  try {
+    await t.request(
+      "POST",
+      "/api/domains/ads/tickets",
+      {
+        title: "测试通知",
+        description: "回调身份不等于发送地址",
+        category: "question",
+      },
+      t.alice,
+    );
+    const notices = await eventually(
+      async () =>
+        (await t.request("GET", "/api/domains/ads/notices", undefined, t.alice))
+          .value,
+      (v) => v[0]?.code === "RECIPIENT_UNMAPPED",
+    );
+    assert.equal(notices[0].state, "pending");
+    assert.equal(sends, 0);
   } finally {
     await t.app.close();
   }

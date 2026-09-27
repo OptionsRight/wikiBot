@@ -3,13 +3,12 @@ import { z } from "zod";
 import {
   Store,
   access,
+  defaultStyle,
   id,
-  hash,
   requireThat,
   Fault,
   type Entity,
   type Identity,
-  type Domain,
 } from "./core.js";
 import { body, path, key } from "./app.js";
 import {
@@ -18,33 +17,27 @@ import {
   modelState,
   type Release,
 } from "./publication.js";
-import { guidance, type Procedure, type InputValue } from "./procedures.js";
+import { retrieve } from "./retrieval.js";
 import type { ModelGateway } from "./adapters/model.js";
-import { explain } from "./explanation.js";
+import { generateAnswer } from "./explanation.js";
 
 export interface Block {
   sequence: number;
-  type: "node" | "explanation" | "status";
+  type: "explanation" | "status";
   text: string;
   citations: string[];
-  nodeId?: string;
 }
 export interface Answer extends Entity {
   owner: string;
   question: string;
   releaseId: string;
   descriptorHash: string;
-  procedureId: string | null;
   session: string;
-  objectId: string | null;
-  inputs: Record<string, InputValue>;
-  mode: "guidance" | "explanation";
   style: "business" | "technical";
   depth: "beginner" | "experienced";
   state: "queued" | "running" | "complete" | "failed" | "incomplete";
   code: string;
   blocks: Block[];
-  checklistComplete: boolean;
   createdAt: number;
   deadline: number;
   finishedAt?: number;
@@ -58,35 +51,18 @@ export interface Answer extends Entity {
   deliveredThrough: number;
   deliveryCancelledAt?: number;
   modelMetrics?: unknown;
-}
-interface Context extends Entity {
-  owner: string;
-  session: string;
-  objectId: string;
-  procedureId: string;
-  confirmed: Record<string, { value: InputValue; semanticVersion: string }>;
+  history?: { question: string; answer: string }[];
 }
 export interface Preference extends Entity {
+  cleared?: boolean;
   owner: string;
   style: "business" | "technical";
   depth: "beginner" | "experienced";
 }
-const explanationSchema = z
-  .object({
-    text: z.string().min(1).max(12000),
-    citations: z.array(z.string()).min(1).max(20),
-  })
-  .strict();
 const answerSchema = z
   .object({
     question: z.string().min(1).max(4000),
-    procedureId: z.string().max(100).optional(),
     sessionId: z.string().min(1).max(100),
-    objectId: z.string().min(1).max(200).optional(),
-    inputs: z
-      .record(z.string(), z.union([z.string().max(200), z.boolean()]))
-      .default({}),
-    mode: z.enum(["guidance", "explanation"]).default("guidance"),
     style: z.enum(["business", "technical"]).optional(),
     depth: z.enum(["beginner", "experienced"]).optional(),
   })
@@ -96,10 +72,17 @@ export class AnswerService {
   private working = new Set<Promise<void>>();
   private controllers = new Map<string, AbortController>();
   private timer: NodeJS.Timeout;
+  private readonly deadlineMs: number;
   constructor(
     private store: Store,
     private model?: ModelGateway,
   ) {
+    this.deadlineMs = Number(process.env.ANSWER_DEADLINE_MS ?? 15000);
+    requireThat(
+      Number.isFinite(this.deadlineMs) && this.deadlineMs > 0,
+      400,
+      "INVALID_ANSWER_DEADLINE",
+    );
     this.timer = setInterval(() => this.tick(), 100);
     this.timer.unref();
   }
@@ -155,61 +138,6 @@ export class AnswerService {
           503,
           "MODEL_REVALIDATION_REQUIRED",
         );
-        const matches = release.bundle.procedures.filter((p) =>
-          input.procedureId
-            ? p.id === input.procedureId
-            : [p.title, ...p.aliases].some((alias) =>
-                input.question.includes(alias),
-              ),
-        );
-        const procedure = matches.length === 1 ? matches[0] : undefined;
-        const contextKey = hash([domain, actor.subject, input.sessionId]);
-        const previous = this.store.get<Context>("context", contextKey),
-          inputs: Record<string, InputValue> = {};
-        if (
-          procedure &&
-          input.objectId &&
-          previous?.procedureId === procedure.id &&
-          previous.objectId === input.objectId
-        ) {
-          for (const field of procedure.inputs) {
-            const v = previous.confirmed[field.id];
-            if (v?.semanticVersion === field.semanticVersion)
-              inputs[field.id] = v.value;
-          }
-        }
-        if (procedure) {
-          for (const [k, v] of Object.entries(input.inputs)) {
-            const field = procedure.inputs.find((f) => f.id === k);
-            requireThat(
-              field && field.values.includes(v),
-              400,
-              "INVALID_INPUT_VALUE",
-            );
-            inputs[k] = v;
-          }
-        }
-        if (procedure && input.objectId)
-          this.store.put<Context>("context", {
-            id: contextKey,
-            domain,
-            version: (previous?.version ?? 0) + 1,
-            owner: actor.subject,
-            session: input.sessionId,
-            objectId: input.objectId,
-            procedureId: procedure.id,
-            confirmed: Object.fromEntries(
-              Object.entries(inputs).map(([k, v]) => [
-                k,
-                {
-                  value: v,
-                  semanticVersion: procedure.inputs.find((f) => f.id === k)!
-                    .semanticVersion,
-                },
-              ]),
-            ),
-          });
-        else if (previous) this.store.remove("context", contextKey);
         const pref = this.store.get<Preference>(
           "preference",
           `${domain}:${actor.subject}`,
@@ -222,19 +150,20 @@ export class AnswerService {
           question: input.question,
           releaseId: release.id,
           descriptorHash: release.descriptorHash,
-          procedureId: procedure?.id ?? null,
           session: input.sessionId,
-          objectId: input.objectId ?? null,
-          inputs,
-          mode: input.mode,
-          style: input.style ?? pref?.style ?? "business",
-          depth: input.depth ?? pref?.depth ?? "beginner",
+          style:
+            input.style ??
+            (pref?.cleared ? undefined : pref?.style) ??
+            defaultStyle(access(this.store, actor, domain)),
+          depth:
+            input.depth ??
+            (pref?.cleared ? undefined : pref?.depth) ??
+            "beginner",
           state: "queued",
           code: "QUEUED",
           blocks: [],
-          checklistComplete: false,
           createdAt: Date.now(),
-          deadline: Date.now() + 10000,
+          deadline: Date.now() + this.deadlineMs,
           modelEpoch: m.epoch,
           review: "clear",
           exposedThrough: 0,
@@ -243,7 +172,7 @@ export class AnswerService {
       },
     );
     this.tick();
-    return answer;
+    return { ...answer, history: undefined };
   }
   read(
     actor: Identity,
@@ -279,6 +208,7 @@ export class AnswerService {
       leaseUntil: undefined,
       callStarted: undefined,
       modelMetrics: undefined,
+      history: undefined,
       blocks: visible,
       reviewReason:
         answer.review === "pending" ? "模型验证待确认" : answer.reviewReason,
@@ -331,6 +261,55 @@ export class AnswerService {
     this.controllers.get(answerId)?.abort();
     return this.read(actor, domain, result.id, false);
   }
+  private historyFor(current: Answer, actor: Identity) {
+    return this.store
+      .list<Answer>("answer", current.domain)
+      .filter((a) => {
+        if (
+          a.id === current.id ||
+          a.createdAt > current.createdAt ||
+          a.owner !== current.owner ||
+          a.session !== current.session ||
+          a.releaseId !== current.releaseId ||
+          a.state !== "complete" ||
+          !["ANSWER", "CLARIFICATION_REQUIRED"].includes(a.code) ||
+          a.review !== "clear" ||
+          a.deliveryCancelledAt ||
+          a.deliveredThrough < 1
+        )
+          return false;
+        const release = this.store.get<Release>("release", a.releaseId);
+        if (!release) return false;
+        try {
+          allowedRelease(this.store, actor, release);
+        } catch {
+          return false;
+        }
+        const m = modelState(
+          this.store,
+          release.bundle.config.model,
+          release.bundle.config.modelRevision,
+        );
+        return m.qualified && m.epoch === a.modelEpoch;
+      })
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 3)
+      .reverse()
+      .map((a) => ({
+        question: a.question,
+        answer: a.blocks
+          .filter(
+            (b) =>
+              (b.type === "explanation" ||
+                a.code === "CLARIFICATION_REQUIRED") &&
+              b.sequence <= a.deliveredThrough,
+          )
+          .map((b) => b.text)
+          .join("\n")
+          .slice(0, 600),
+      }))
+      .filter((h) => h.answer.length > 0);
+  }
   private async run(answerId: string) {
     let token: string | undefined;
     try {
@@ -354,7 +333,9 @@ export class AnswerService {
           ...a,
           state: "running",
           lease: token,
-          leaseUntil: Date.now() + 15000,
+          // The lease must cover the whole deadline window; the deadline itself
+          // is enforced by the abort timer and commit-time checks.
+          leaseUntil: Date.now() + this.deadlineMs + 5000,
           version: a.version + 1,
         });
       });
@@ -363,78 +344,30 @@ export class AnswerService {
       const actor = { subject: a.owner, platform: false };
       allowedRelease(this.store, actor, release);
       requireThat(Date.now() < a.deadline, 503, "DEADLINE_EXCEEDED");
-      const procedure = release.bundle.procedures.find(
-        (p) => p.id === a.procedureId,
-      );
-      let code = "GUIDANCE",
-        blocks: Block[] = [],
-        complete = false;
-      if (!procedure) {
-        code = "PROCEDURE_SELECTION_REQUIRED";
-        blocks = [
-          {
-            sequence: 1,
-            type: "status",
-            text:
-              "请明确要咨询的流程：" +
-              release.bundle.procedures
-                .map((p) => `${p.title}（流程：${p.id}）`)
-                .join("、"),
-            citations: [],
-          },
-        ];
-      } else if (a.mode === "guidance" && !a.objectId) {
-        code = "OBJECT_REQUIRED";
-        blocks = [
-          {
-            sequence: 1,
-            type: "status",
-            text: "请明确本次咨询对象，避免沿用其他客户或策略的条件。",
-            citations: [],
-          },
-        ];
-      } else if (a.mode === "guidance") {
-        const selected = guidance(procedure, a.inputs);
-        code = selected.code;
-        if (selected.code === "GUIDANCE") {
-          blocks = selected.nodes.map((n, index) => ({
-            sequence: index + 1,
-            type: "node",
-            nodeId: n.id,
-            text: n.text,
-            citations: n.citations,
-          }));
-          complete = true;
-        } else
-          blocks = [
+      // The current question drives retrieval; history questions join only
+      // when it alone retrieves nothing (elliptical follow-ups like "那第7步
+      // 呢"), so prior turns never skew the ranking of a self-sufficient one.
+      const history = this.historyFor(a, actor);
+      let pages = retrieve(release.bundle, a.question);
+      if (!pages.length && history.length)
+        pages = retrieve(
+          release.bundle,
+          [a.question, ...history.map((h) => h.question)].join("\n"),
+        );
+      if (!pages.length) {
+        this.commit(a.id, token!, (answer) => ({
+          ...answer,
+          code: "KNOWLEDGE_COVERAGE_GAP",
+          blocks: [
             {
               sequence: 1,
               type: "status",
-              text: selected.questions.length
-                ? selected.questions
-                    .map(
-                      (q) =>
-                        `${q.question}（${q.options.join(" / ")}）；可补充：${q.id}=所选值`,
-                    )
-                    .join("\n")
-                : ({
-                    PROCEDURE_NOT_APPLICABLE: "根据已审核条件，本场景不适用。",
-                    PROCEDURE_COVERAGE_GAP: "当前知识尚未覆盖该场景。",
-                    PROCEDURE_BRANCH_GAP:
-                      "流程配置存在缺口，暂不能给出操作清单。",
-                    PROCEDURE_BRANCH_CONFLICT: "流程条件冲突，已停止清单。",
-                  }[selected.code] ?? "请补充流程条件。"),
+              text: "当前已发布知识尚未覆盖该问题；可通过 /登记 提交问题，由知识负责人处理。",
               citations: [],
             },
-          ];
-      }
-      this.commit(a.id, token!, (answer) => ({
-        ...answer,
-        blocks,
-        checklistComplete: complete,
-        code,
-      }));
-      if (procedure && (complete || a.mode === "explanation")) {
+          ],
+        }));
+      } else {
         requireThat(this.model, 503, "MODEL_UNAVAILABLE");
         const controller = new AbortController();
         this.controllers.set(a.id, controller);
@@ -456,30 +389,40 @@ export class AnswerService {
             );
             return { ...answer, callStarted: true };
           });
-          const { explanation, metrics } = await explain(
-            this.model,
-            release.bundle,
+          // Only a fully validated immutable block may be delivered.
+          const { answer: generated, metrics } = await generateAnswer(
+            this.model!,
             {
+              modelId: release.bundle.config.model,
+              config: release.bundle.config,
               question: a.question,
-              pageId: procedure.pageId,
-              checklist: blocks,
+              pages,
               style: a.style,
               depth: a.depth,
+              ...(history.length ? { history } : {}),
             },
             controller.signal,
           );
           this.commit(a.id, token!, (answer) => ({
             ...answer,
             blocks: [
-              ...answer.blocks,
               {
-                sequence: answer.blocks.length + 1,
-                type: "explanation",
-                ...explanation,
+                sequence: 1,
+                type:
+                  generated.outcome && generated.outcome !== "answer"
+                    ? "status"
+                    : "explanation",
+                text: generated.text,
+                citations: generated.citations,
               },
             ],
             modelMetrics: metrics,
-            code: a.mode === "explanation" ? "EXPLANATION" : "GUIDANCE",
+            code:
+              generated.outcome === "knowledge_gap"
+                ? "KNOWLEDGE_COVERAGE_GAP"
+                : generated.outcome === "clarification"
+                  ? "CLARIFICATION_REQUIRED"
+                  : "ANSWER",
           }));
         } finally {
           clearTimeout(timeout);
@@ -496,7 +439,7 @@ export class AnswerService {
       this.store.tx(() => {
         const a = this.store.get<Answer>("answer", answerId);
         if (!a || a.lease !== token || a.state !== "running") return;
-        this.store.put<Answer>("answer", {
+        this.store.put("answer", {
           ...a,
           state: a.blocks.length ? "incomplete" : "failed",
           code:
@@ -534,6 +477,16 @@ export class AnswerService {
       );
       requireThat(
         answer.review === "clear",
+        503,
+        "MODEL_REVALIDATION_REQUIRED",
+      );
+      const m = modelState(
+        this.store,
+        release.bundle.config.model,
+        release.bundle.config.modelRevision,
+      );
+      requireThat(
+        m.qualified && m.epoch === answer.modelEpoch,
         503,
         "MODEL_REVALIDATION_REQUIRED",
       );
@@ -629,13 +582,18 @@ export function registerAnswers(
   });
   app.get("/api/domains/:domain/preferences", async (request) => {
     const domain = path(request, "domain");
-    access(store, request.actor, domain);
-    return (
-      store.get<Preference>(
-        "preference",
-        `${domain}:${request.actor.subject}`,
-      ) ?? { style: "business", depth: "beginner", version: 0 }
+    const grant = access(store, request.actor, domain);
+    const pref = store.get<Preference>(
+      "preference",
+      `${domain}:${request.actor.subject}`,
     );
+    return pref && !pref.cleared
+      ? pref
+      : {
+          style: defaultStyle(grant),
+          depth: "beginner",
+          version: pref?.version ?? 0,
+        };
   });
   app.patch("/api/domains/:domain/preferences", async (request) => {
     const domain = path(request, "domain"),
@@ -704,6 +662,7 @@ export function registerAnswers(
           id: `${domain}:${request.actor.subject}`,
           domain,
           owner: request.actor.subject,
+          cleared: true,
           style: "business",
           depth: "beginner",
           version: input.expectedVersion + 1,

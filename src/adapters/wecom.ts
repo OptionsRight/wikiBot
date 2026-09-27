@@ -4,6 +4,7 @@ export interface Inbound {
   botId: string;
   userId: string;
   chatType: "single" | "group";
+  chatId?: string;
   text: string;
   replyContext: unknown;
 }
@@ -76,6 +77,7 @@ export class WecomSocket implements WecomTransport {
         botId: m.aibotid,
         userId: m.from.userid,
         chatType: m.chattype,
+        chatId: m.chatid,
         text: m.text.content,
         replyContext: frame,
       }).catch(() => {});

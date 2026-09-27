@@ -1,0 +1,56 @@
+{
+  "pages": [
+    {
+      "id": "equipment",
+      "path": "handbook/equipment.md",
+      "title": "设备借用（合成示例）",
+      "hash": "5f3ec983620283a2b5d071c5d709ffce6e1ffd5daad1ad60086d5bf60eabfdc9"
+    }
+  ],
+  "cases": [
+    {
+      "id": "borrow-business-beginner",
+      "question": "设备借用如何登记领取？",
+      "style": "business",
+      "depth": "beginner",
+      "expectedCitations": ["equipment"]
+    },
+    {
+      "id": "borrow-business-experienced",
+      "question": "设备借用如何登记领取？",
+      "style": "business",
+      "depth": "experienced",
+      "expectedCitations": ["equipment"]
+    },
+    {
+      "id": "borrow-technical-beginner",
+      "question": "设备借用如何登记领取？",
+      "style": "technical",
+      "depth": "beginner",
+      "expectedCitations": ["equipment"]
+    },
+    {
+      "id": "borrow-technical-experienced",
+      "question": "设备借用如何登记领取？",
+      "style": "technical",
+      "depth": "experienced",
+      "expectedCitations": ["equipment"]
+    }
+  ],
+  "config": {
+    "model": "test-model",
+    "modelRevision": "r1",
+    "promptVersion": "1",
+    "templateVersion": "1",
+    "retrievalVersion": "1",
+    "protocolVersion": "1",
+    "evaluationVersion": "1",
+    "domainLabel": "设备借用合成示例",
+    "answerTemplates": {
+      "business": "按申请、领取、归还顺序说明已知规则。",
+      "technical": "保留设备编号、登记字段与管理员确认的约束。",
+      "beginner": "解释设备登记术语，并给出来源支持的示例。",
+      "experienced": "简明说明必要条件和异常处理，避免重复常识。"
+    }
+  }
+}

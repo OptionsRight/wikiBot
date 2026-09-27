@@ -24,8 +24,24 @@ export interface WecomOptions {
   members: Record<string, string>;
   transport: WecomTransport;
   notifications?: boolean;
+  /** Independently verified subject -> proactive single-chat address mapping. */
+  notificationRecipients?: Record<string, string>;
+  /** Allowed group chat ids; other groups are silently ignored. */
+  groups?: string[];
+  /** Trusted directory must return the complete current audience, never a partial page. */
+  groupAudience?: (
+    chatId: string,
+  ) => Promise<
+    { userIds: string[]; complete: boolean; expiresAt: number } | undefined
+  >;
 }
 interface Receipt extends Entity {
+  commands?: {
+    key: string;
+    state: "pending" | "committed" | "unknown";
+    operation?: string;
+    objectId?: string;
+  }[];
   botId?: string;
   owner: string;
   messageId: string;
@@ -45,6 +61,19 @@ interface Lease extends Entity {
 }
 function plain(text: string) {
   return text.replace(/[\\`*_{}\[\]()#+.!<>|]/g, "\\$&");
+}
+// The WeCom chat bubble renders only a markdown subset (inline code and
+// quotes render; headings, bold, fenced blocks do not). Normalize the
+// model's full markdown to what this surface displays cleanly.
+function wecomFormat(text: string) {
+  return text
+    .replace(/^#{1,6}\s*(.+)$/gm, "【$1】")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1（$2）")
+    .replace(/^[-*]\s+/gm, "· ")
+    .replace(/^---+\s*$/gm, "———")
+    .replace(/```\w*\n([\s\S]*?)```/g, (_match, code: string) => code.trim());
 }
 export function registerChannel(
   app: FastifyInstance,
@@ -79,6 +108,25 @@ export function registerChannel(
   ) {
     own();
     access(store, actor, options.domain);
+    const commandKey = `wecom:${hash([options.botId, event.id, url, payload])}`;
+    const receiptId = hash([options.botId, event.id]);
+    if (method !== "GET")
+      store.tx(() => {
+        const receipt = store.get<Receipt>("inbox", receiptId);
+        requireThat(
+          receipt?.owner === actor.subject && receipt.domain === options.domain,
+          409,
+          "INBOUND_INTENT_REQUIRED",
+        );
+        store.put<Receipt>("inbox", {
+          ...receipt,
+          version: receipt.version + 1,
+          commands: [
+            ...(receipt.commands ?? []).filter((c) => c.key !== commandKey),
+            { key: commandKey, state: "pending" },
+          ],
+        });
+      });
     let token = tokens.get(actor.subject);
     if (!token) {
       token = randomBytes(32).toString("base64url");
@@ -90,12 +138,13 @@ export function registerChannel(
       url,
       headers: {
         authorization: `Bearer ${token}`,
-        "idempotency-key": `wecom:${hash([options.botId, event.id, url, payload])}`,
+        "idempotency-key": commandKey,
         "content-type": "application/json",
       },
       payload: payload === undefined ? undefined : JSON.stringify(payload),
     });
     const value = response.json();
+    if (method !== "GET") reconcileCommands(receiptId);
     if (response.statusCode >= 400)
       throw new Fault(
         response.statusCode,
@@ -103,18 +152,77 @@ export function registerChannel(
       );
     return value;
   }
+  function reconcileCommands(receiptId: string) {
+    const receipt = store.get<Receipt>("inbox", receiptId);
+    if (!receipt?.commands?.length) return;
+    const actor = { subject: receipt.owner, platform: false };
+    store.put<Receipt>("inbox", {
+      ...receipt,
+      version: receipt.version + 1,
+      commands: receipt.commands.map((command) => {
+        const outcome = store.commandReceipt(
+          actor,
+          receipt.domain,
+          command.key,
+        );
+        return {
+          key: command.key,
+          state: outcome ? "committed" : "unknown",
+          ...outcome,
+        };
+      }),
+    });
+  }
+  async function verifyAudience(event: Inbound) {
+    if (event.chatType !== "group") return;
+    requireThat(
+      event.chatId &&
+        options.groups?.includes(event.chatId) &&
+        options.groupAudience,
+      403,
+      "GROUP_AUDIENCE_UNKNOWN",
+    );
+    const audience = await options.groupAudience(event.chatId);
+    requireThat(
+      audience?.complete &&
+        audience.expiresAt > Date.now() &&
+        audience.userIds.length > 0 &&
+        audience.userIds.includes(event.userId),
+      403,
+      "GROUP_AUDIENCE_UNKNOWN",
+    );
+    for (const userId of audience.userIds) {
+      const subject = Object.hasOwn(options.members, userId)
+        ? options.members[userId]
+        : undefined;
+      requireThat(subject, 403, "GROUP_AUDIENCE_UNAUTHORIZED");
+      access(store, { subject, platform: false }, options.domain);
+    }
+    return hash([...new Set(audience.userIds)].sort());
+  }
   async function receive(event: Inbound) {
-    if (
-      stopping ||
-      event.botId !== options.botId ||
-      event.chatType !== "single" ||
-      event.text.length > 16000
-    )
+    if (stopping || event.botId !== options.botId || event.text.length > 16000)
       return;
+    let audienceKey: string | undefined;
+    if (event.chatType === "group") {
+      // Group answers are visible to everyone: only allowlisted groups,
+      // only messages that mention the bot, and only mapped members.
+      if (!event.chatId || !options.groups?.includes(event.chatId)) return;
+      if (!/^@\S+\s+/.test(event.text)) return;
+      try {
+        audienceKey = await verifyAudience(event);
+      } catch {
+        return;
+      }
+    } else if (event.chatType !== "single") return;
     const subject = Object.hasOwn(options.members, event.userId)
       ? options.members[event.userId]
       : undefined;
     if (!subject) return;
+    const messageText =
+      event.chatType === "group"
+        ? event.text.replace(/^@\S+\s*/, "").trim()
+        : event.text;
     const actor = { subject, platform: false },
       domain = options.domain,
       rid = hash([options.botId, event.id]);
@@ -142,6 +250,7 @@ export function registerChannel(
       const conversationId = hash([
         domain,
         options.botId,
+        event.chatId ?? "",
         event.userId,
         subject,
       ]);
@@ -165,6 +274,11 @@ export function registerChannel(
         answerId?: string,
       ) {
         releaseTurn();
+        requireThat(
+          (await verifyAudience(event)) === audienceKey,
+          403,
+          "GROUP_AUDIENCE_CHANGED",
+        );
         own();
         access(store, actor, domain);
         let complete = finish;
@@ -188,6 +302,7 @@ export function registerChannel(
           "CHANNEL_BODY_TOO_LARGE",
         );
         // Commit the uncertain send boundary before entering an external network.
+        receipt = store.get<Receipt>("inbox", rid)!;
         const intent = store.put<Receipt>("inbox", {
           ...receipt!,
           state: "unknown",
@@ -238,7 +353,17 @@ export function registerChannel(
           });
         });
       }
-      const answerControl = event.text.match(
+      if (
+        event.chatType === "group" &&
+        /^(?:\/|反馈[：:\s]|登记[：:\s]|我要登记|帮我登记)/.test(messageText)
+      ) {
+        await send(
+          `个人答案、工单与维护操作请使用机器人单聊或认证网页：${origin ?? "请联系管理员获取地址"}`,
+          true,
+        );
+        return;
+      }
+      const answerControl = messageText.match(
         /^\/(取消|答案)(?: ([a-zA-Z0-9-]+))?$/,
       );
       if (answerControl) {
@@ -273,17 +398,17 @@ export function registerChannel(
         );
         return;
       }
-      if (event.text === "/帮助") {
+      if (messageText === "/帮助") {
         await send(
-          "提问格式：流程名称\n对象：客户或策略\n条件：字段=值\n补充上一轮：/条件 字段=值 或 /继续 后另起一行填写对象、条件、流程编号\n/取消 [答案编号] 停止生成和后续正文发送\n/答案 [答案编号] 查看状态\n/偏好 查看；/偏好 业务|技术 入门|熟练 保存；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/登记 问题描述；/工单 编号；/反馈 答案编号 描述",
+          "直接发送问题即可，机器人会检索已发布知识并回答（回复支持 Markdown 排版，附依据页面编号）。\n反馈最近答案：回复“反馈 问题描述”\n登记新问题：回复“登记 问题描述”\n/取消 停止生成；/答案 [编号] 查看状态\n/偏好 查看；/偏好 业务|技术 入门|熟练 保存；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/工单 编号 查看处理进度；/附件 编号 转网页\n/身份 查看资格标签；/投递 查看未知回执\n处理人：/备注、/拒绝 编号@版本 说明；/合并 编号@版本 目标编号；/指派 编号@版本 处理人",
           true,
         );
         return;
       }
       if (
-        event.text === "/偏好" ||
-        event.text === "/清除偏好" ||
-        event.text.startsWith("/偏好 ")
+        messageText === "/偏好" ||
+        messageText === "/清除偏好" ||
+        messageText.startsWith("/偏好 ")
       ) {
         let preference = await command(
           actor,
@@ -291,7 +416,7 @@ export function registerChannel(
           "GET",
           `${base}/preferences`,
         );
-        if (event.text === "/清除偏好")
+        if (messageText === "/清除偏好")
           preference = await command(
             actor,
             event,
@@ -299,8 +424,10 @@ export function registerChannel(
             `${base}/preferences`,
             { expectedVersion: preference.version },
           );
-        else if (event.text !== "/偏好") {
-          const selected = event.text.match(/^\/偏好 (业务|技术) (入门|熟练)$/);
+        else if (messageText !== "/偏好") {
+          const selected = messageText.match(
+            /^\/偏好 (业务|技术) (入门|熟练)$/,
+          );
           requireThat(selected, 400, "PREFERENCE_FORMAT_REQUIRED");
           preference = await command(
             actor,
@@ -320,7 +447,32 @@ export function registerChannel(
         );
         return;
       }
-      if (event.text === "/通知") {
+      if (messageText === "/投递") {
+        const receipts = (
+          await command(actor, event, "GET", `${base}/channel-receipts`)
+        ).filter(
+          (r: Receipt) => r.owner === subject && r.botId === options.botId,
+        );
+        await send(
+          receipts
+            .slice(-10)
+            .map(
+              (r: Receipt) =>
+                `${r.answerId ? `答案 ${r.answerId}` : "请求"}：${r.state}${r.code ? `（${r.code}）` : ""}${
+                  r.commands?.some((c) => c.state === "committed")
+                    ? `；业务已提交 ${r.commands
+                        .filter((c) => c.state === "committed")
+                        .map((c) => c.objectId ?? "操作")
+                        .join("、")}`
+                    : ""
+                }`,
+            )
+            .join("\n") || "暂无投递记录。",
+          true,
+        );
+        return;
+      }
+      if (messageText === "/通知") {
         const notices = await command(actor, event, "GET", `${base}/notices`);
         await send(
           notices.length
@@ -341,7 +493,7 @@ export function registerChannel(
         );
         return;
       }
-      const retryNotice = event.text.match(
+      const retryNotice = messageText.match(
         /^\/重试通知 ([a-zA-Z0-9-]+)@(\d+)$/,
       );
       if (retryNotice) {
@@ -355,18 +507,51 @@ export function registerChannel(
         await send(`通知 ${n.id}：${n.state}。业务操作不会重复执行。`, true);
         return;
       }
-      if (event.text.startsWith("/登记 ")) {
-        const description = event.text.slice(4).trim(),
+      const registration = messageText.match(
+        /^(?:\/登记|登记|我要登记|帮我登记)[：:\s]+([\s\S]+)$/,
+      );
+      if (registration) {
+        const description = registration[1]!.trim(),
           ticket = await command(actor, event, "POST", `${base}/tickets`, {
             title: description.slice(0, 100),
             description,
             category: "question",
           });
-        await send(`问题已登记：${ticket.id}\n状态：${ticket.state}`, true);
+        await send(
+          `问题已登记：${ticket.id}\n状态：${ticket.state}\n处理进度可发送 /工单 ${ticket.id} 查看。`,
+          true,
+        );
         return;
       }
-      if (event.text.startsWith("/工单 ")) {
-        const tid = event.text.slice(4).trim();
+      if (messageText === "/身份") {
+        const grant = await command(
+          actor,
+          event,
+          "GET",
+          `${base}/capabilities`,
+        );
+        await send(
+          `领域权限：${grant.role === "admin" ? "知识管理员" : "普通成员"}；表达标签：${(grant.tags ?? []).join(" / ") || "未设置"}；默认视角：${grant.defaultStyle ?? "business"}。标签不授予管理权限。成员配置请由平台管理员在认证网页处理。`,
+          true,
+        );
+        return;
+      }
+      const attachmentLink = messageText.match(/^\/附件 ([a-zA-Z0-9-]+)$/);
+      if (attachmentLink) {
+        await command(
+          actor,
+          event,
+          "GET",
+          `${base}/tickets/${attachmentLink[1]}`,
+        );
+        await send(
+          `附件需在认证网页上传和下载：${origin ?? "请联系管理员提供地址"}。进入工单 ${attachmentLink[1]} 查看，内部附件仅管理员可见。`,
+          true,
+        );
+        return;
+      }
+      if (messageText.startsWith("/工单 ")) {
+        const tid = messageText.slice(4).trim();
         requireThat(/^[a-zA-Z0-9-]+$/.test(tid), 400, "INVALID_ID");
         const ticket = await command(
           actor,
@@ -374,27 +559,43 @@ export function registerChannel(
           "GET",
           `${base}/tickets/${tid}`,
         );
+        const details = [
+          ticket.resolution ?? "等待处理",
+          ...(ticket.comments ?? []).map(
+            (c: { internal: boolean; text: string }) =>
+              `${c.internal ? "内部备注：" : "处理记录："}${c.text}`,
+          ),
+        ].join("\n");
+        const preview = [...details].slice(-3000).join("");
         await send(
-          `工单 ${ticket.id}@${ticket.version}\n${plain(ticket.title)}\n状态：${ticket.state}\n${plain(ticket.resolution ?? "等待处理")}`,
+          `工单 ${ticket.id}@${ticket.version}\n${plain(ticket.title)}\n状态：${ticket.state}\n${details.length > preview.length ? "仅展示末尾记录，完整内容请在认证网页查看。\n" : ""}${plain(preview)}\n补充或确认：/补充 ${ticket.id}@${ticket.version} 说明；/确认 ${ticket.id}@${ticket.version}；/重开 ${ticket.id}@${ticket.version} 原因；附件：/附件 ${ticket.id}${origin ? `\n认证网页：${origin}/#ticket=${ticket.id}&domain=${encodeURIComponent(domain)}` : ""}`,
           true,
         );
         return;
       }
-      if (event.text.startsWith("/反馈 ")) {
-        const parts = event.text.slice(4).trim().split(/\s+/),
-          answerId = parts.shift()!,
-          description = parts.join(" ");
+      const feedback = messageText.match(
+        /^(?:\/反馈|反馈)[：:\s]+(?:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\s+)?([\s\S]+)$/,
+      );
+      if (feedback) {
+        const answerId =
+          feedback[1] ??
+          store.get<Conversation>("channel-conversation", conversationId)
+            ?.answerId;
+        requireThat(answerId, 404, "NO_PREVIOUS_CONSULTATION");
         const ticket = await command(actor, event, "POST", `${base}/tickets`, {
           title: "答案反馈",
-          description,
-          category: "knowledge",
+          description: feedback[2]!.trim(),
+          category: "question",
           answerId,
         });
-        await send(`反馈已登记：${ticket.id}`, true);
+        await send(
+          `反馈已登记：${ticket.id}\n知识负责人处理后可在此跟踪进度（/工单 ${ticket.id}）。`,
+          true,
+        );
         return;
       }
-      const ticketAction = event.text.match(
-        /^\/(补充|确认|重开|撤回|分诊|开始|解决|请求材料) ([a-zA-Z0-9-]+)@(\d+)(?:\s+([\s\S]+))?$/,
+      const ticketAction = messageText.match(
+        /^\/(补充|确认|重开|撤回|分诊|开始|解决|请求材料|备注|合并|拒绝|指派) ([a-zA-Z0-9-]+)@(\d+)(?:\s+([\s\S]+))?$/,
       );
       if (ticketAction) {
         const action = (
@@ -407,6 +608,10 @@ export function registerChannel(
             开始: "start",
             解决: "resolve",
             请求材料: "request_info",
+            备注: "note",
+            合并: "merge",
+            拒绝: "reject",
+            指派: "assign",
           } as Record<string, string>
         )[ticketAction[1]!]!;
         const ticket = await command(
@@ -417,7 +622,11 @@ export function registerChannel(
           {
             action,
             expectedVersion: Number(ticketAction[3]),
-            text: ticketAction[4],
+            text: ["merge", "assign"].includes(action)
+              ? undefined
+              : ticketAction[4],
+            targetId: action === "merge" ? ticketAction[4]?.trim() : undefined,
+            assignee: action === "assign" ? ticketAction[4]?.trim() : undefined,
           },
         );
         await send(
@@ -426,7 +635,7 @@ export function registerChannel(
         );
         return;
       }
-      const revisionInput = event.text.match(
+      const revisionInput = messageText.match(
         /^\/修订 ([a-zA-Z0-9_-]+)\n范围[：:]([^\n]+)\n依据[：:]([^\n]+)\n正文[：:]([\s\S]+)$/,
       );
       if (revisionInput) {
@@ -466,7 +675,7 @@ export function registerChannel(
         );
         return;
       }
-      const revisionSubmit = event.text.match(
+      const revisionSubmit = messageText.match(
         /^\/提交修订 ([a-zA-Z0-9-]+)@(\d+)$/,
       );
       if (revisionSubmit) {
@@ -483,7 +692,7 @@ export function registerChannel(
         );
         return;
       }
-      if (event.text === "/修订") {
+      if (messageText === "/修订") {
         access(store, actor, domain, true);
         await send(
           `可发送以下格式保存草稿：\n/修订 页面编号\n范围：受影响场景\n依据：更正理由与来源（至少十字）\n正文：更正后的完整正文\n\n也可使用认证网页：${origin ?? "请联系管理员提供网页地址"}`,
@@ -491,12 +700,12 @@ export function registerChannel(
         );
         return;
       }
-      if (event.text.startsWith("/修订状态 ")) {
+      if (messageText.startsWith("/修订状态 ")) {
         const revision = await command(
           actor,
           event,
           "GET",
-          `${base}/revisions/${encodeURIComponent(event.text.slice(6).trim())}`,
+          `${base}/revisions/${encodeURIComponent(messageText.slice(6).trim())}`,
         );
         await send(
           `修订 ${revision.id}\n状态：${revision.state}\n${revision.blocker ?? ""}`,
@@ -504,81 +713,19 @@ export function registerChannel(
         );
         return;
       }
-      const continuing =
-        /^\/(条件 |继续(?:\n|$))/.test(event.text) ||
-        /^(对象|条件)[：:]/.test(event.text);
       requireThat(
-        !event.text.startsWith("/") || continuing,
+        !messageText.startsWith("/"),
         400,
         "UNKNOWN_COMMAND_USE_HELP",
       );
-      const text = event.text
-        .replace(/^\/条件 /, "条件：")
-        .replace(/^\/继续(?:\n|$)/, "");
-      const prior = continuing
-        ? store.get<Conversation>("channel-conversation", conversationId)
-        : undefined;
-      requireThat(!continuing || prior, 409, "NO_PREVIOUS_CONSULTATION");
-      const previousAnswer = prior
-        ? answers.read(actor, domain, prior.answerId, false)
-        : undefined;
-      requireThat(
-        !previousAnswer || previousAnswer.review === "clear",
-        409,
-        "DELIVERY_PAUSED",
-      );
-      const objectId =
-        text.match(/(?:^|\n)对象[：:]([^\n]+)/)?.[1]?.trim() ??
-        previousAnswer?.objectId ??
-        undefined;
-      const selectedProcedure = text
-        .match(/(?:^|\n)流程[：:]([^\n]+)/)?.[1]
-        ?.trim();
-      let procedureId =
-        selectedProcedure ?? previousAnswer?.procedureId ?? undefined;
-      if (selectedProcedure) {
-        const knowledge = await command(
-          actor,
-          event,
-          "GET",
-          `${base}/knowledge`,
-        );
-        const matches = knowledge.procedures.filter(
-          (p: { id: string; title: string; aliases: string[] }) =>
-            [p.id, p.title, ...p.aliases].includes(selectedProcedure),
-        );
-        if (matches.length === 1) procedureId = matches[0].id;
-      }
-      const inputs: Record<string, string | boolean> = {};
-      for (const pair of (
-        text.match(/(?:^|\n)条件[：:]([^\n]+)/)?.[1] ?? ""
-      ).split(/[；;,，]/)) {
-        if (!pair.trim()) continue;
-        const [k, v, extra] = pair.split("=");
-        requireThat(
-          k?.trim() && v?.trim() && extra === undefined,
-          400,
-          "CONDITION_FORMAT_REQUIRED",
-        );
-        if (k && v)
-          inputs[k.trim()] =
-            v.trim() === "true"
-              ? true
-              : v.trim() === "false"
-                ? false
-                : v.trim();
-      }
       const answer = await command(actor, event, "POST", `${base}/answers`, {
-        question: continuing
-          ? previousAnswer!.question
-          : text
-              .replace(/^(对象|条件|流程)[：:][^\n]*\n?/gm, "")
-              .trim()
-              .slice(0, 4000) || "流程咨询",
-        sessionId: `wecom:${hash([options.botId, event.userId])}`,
-        objectId,
-        procedureId,
-        inputs,
+        question: messageText.trim(),
+        sessionId: `wecom:${hash([
+          options.botId,
+          event.chatId ?? "",
+          audienceKey ?? "",
+          event.userId,
+        ])}`,
       });
       const conversation = store.get<Conversation>(
         "channel-conversation",
@@ -590,6 +737,7 @@ export function registerChannel(
         version: (conversation?.version ?? 0) + 1,
         answerId: answer.id,
       });
+      receipt = store.get<Receipt>("inbox", rid)!;
       receipt = store.put<Receipt>("inbox", {
         ...receipt,
         answerId: answer.id,
@@ -604,22 +752,30 @@ export function registerChannel(
         const a = answers.read(actor, domain, answer.id);
         requireThat(a.review === "clear", 503, "DELIVERY_PAUSED");
         if (a.deliveryCancelledAt) {
-          await send(
-            `答案 ${a.id}\n已取消，后续正文发送已停止。`,
-            true,
-            0,
-            a.id,
-          );
+          await send("已取消，后续正文发送已停止。", true, 0, a.id);
           finished = true;
           break;
         }
         const finish = !["queued", "running"].includes(a.state);
         const status = finish
           ? a.state === "complete"
-            ? "生成完成"
+            ? `生成完成${a.finishedAt ? `，耗时 ${((a.finishedAt - a.createdAt) / 1000).toFixed(1)} 秒` : ""}`
             : `回答未完整完成：${a.code}`
           : "生成中";
-        const content = `答案 ${a.id}\n${a.blocks.map((b) => plain(b.text) + (b.citations.length ? `\n依据：${b.citations.join("、")}` : "")).join("\n\n")}\n${status}`;
+        const body = a.blocks
+          .map(
+            (b) =>
+              wecomFormat(b.text) +
+              (b.citations.length ? `\n依据：${b.citations.join("、")}` : ""),
+          )
+          .join("\n\n");
+        const guidance =
+          event.chatType === "group"
+            ? "\n——\n反馈或登记请使用机器人单聊。"
+            : "\n——\n反馈本条答案：回复“反馈 问题描述”；登记新问题：回复“登记 问题描述”。";
+        const content = finish
+          ? `${body}\n${status}${guidance}`
+          : `${body}\n${status}`;
         if (Buffer.byteLength(content, "utf8") > 20000) {
           await send(
             `答案 ${a.id}\n企微正文未完整交付。请登录网页查看完整答案：${origin ?? "请联系管理员提供网页地址"}${origin ? `/#answer=${a.id}&domain=${domain}` : ""}`,
@@ -649,17 +805,12 @@ export function registerChannel(
         answers.expire(actor, domain, answer.id, `deadline:${rid}`);
         const final = answers.read(actor, domain, answer.id, false);
         if (final.deliveryCancelledAt) {
-          await send(
-            `答案 ${answer.id}\n已取消，后续正文发送已停止。`,
-            true,
-            0,
-            answer.id,
-          );
+          await send("已取消，后续正文发送已停止。", true, 0, answer.id);
           return;
         }
         const terminal = previous
           ? previous.replace(/\n生成中$/, "\n回答未完整完成：已到达处理时限。")
-          : `答案 ${answer.id}\n回答未完整完成：已到达处理时限。`;
+          : "回答未完整完成：已到达处理时限。";
         await send(terminal, true, receipt.through, answer.id);
         receipt = store.put<Receipt>("inbox", {
           ...receipt,
@@ -687,6 +838,11 @@ export function registerChannel(
         });
         if (current.state === "processing")
           try {
+            requireThat(
+              (await verifyAudience(event)) === audienceKey,
+              403,
+              "GROUP_AUDIENCE_CHANGED",
+            );
             own();
             access(store, actor, domain);
             store.put("inbox", {
@@ -729,12 +885,14 @@ export function registerChannel(
       });
       for (const receipt of store.list<Receipt>("inbox", options.domain)) {
         if (receipt.botId !== options.botId || receipt.streamFinished) continue;
+        reconcileCommands(receipt.id);
+        const reconciled = store.get<Receipt>("inbox", receipt.id)!;
         store.put<Receipt>("inbox", {
-          ...receipt,
-          state: receipt.state === "processing" ? "failed" : receipt.state,
-          code: receipt.code ?? "CHANNEL_INTERRUPTED",
+          ...reconciled,
+          state: receipt.state === "processing" ? "unknown" : receipt.state,
+          code: receipt.code ?? "CHANNEL_INTERRUPTED_OUTCOME_UNKNOWN",
           complete: false,
-          version: receipt.version + 1,
+          version: reconciled.version + 1,
         });
       }
     });
@@ -774,16 +932,22 @@ export function registerChannel(
     const lease = store.get<Lease>("bot-lease", leaseId);
     if (lease?.owner === owner) store.remove("bot-lease", leaseId);
   });
-  app.get("/api/domains/:domain/channel-receipts", async (request) => {
-    const grant = access(
-      store,
-      request.actor,
-      (request.params as { domain: string }).domain,
-    );
-    return store
-      .list<Receipt>("inbox", (request.params as { domain: string }).domain)
-      .filter(
-        (r) => r.owner === request.actor.subject || grant.role === "admin",
+  if (
+    !app.hasRoute({
+      method: "GET",
+      url: "/api/domains/:domain/channel-receipts",
+    })
+  )
+    app.get("/api/domains/:domain/channel-receipts", async (request) => {
+      const grant = access(
+        store,
+        request.actor,
+        (request.params as { domain: string }).domain,
       );
-  });
+      return store
+        .list<Receipt>("inbox", (request.params as { domain: string }).domain)
+        .filter(
+          (r) => r.owner === request.actor.subject || grant.role === "admin",
+        );
+    });
 }

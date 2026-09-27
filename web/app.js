@@ -3,6 +3,7 @@ let token = "",
   me,
   domain = "",
   knowledge,
+  currentGrant,
   prefVersion = 0,
   answerId,
   poll,
@@ -92,6 +93,13 @@ async function login() {
     answerId = h.get("answer");
     await readAnswer();
   }
+  if (
+    h.get("domain") === domain &&
+    /^[a-f0-9-]{36}$/.test(h.get("ticket") ?? "")
+  ) {
+    document.querySelector('[data-view="tickets"]').click();
+    await showTicket(h.get("ticket"));
+  }
 }
 bind("token-login", async () => {
   token = $("token").value;
@@ -108,7 +116,11 @@ $("domain").onchange = async () => {
   domain = $("domain").value;
   session = crypto.randomUUID();
   clearTimeout(poll);
+  answerId = undefined;
   $("answer").replaceChildren();
+  delete $("answer").dataset.signature;
+  $("cancel").hidden = true;
+  $("feedback").hidden = true;
   try {
     await changeDomain();
   } catch (e) {
@@ -116,7 +128,20 @@ $("domain").onchange = async () => {
   }
 };
 async function changeDomain() {
-  const grant = await api(`${base()}/capabilities`);
+  $("access-nav").hidden = !me.platform;
+  if (me.platform) await listMembers();
+  let grant;
+  try {
+    grant = await api(`${base()}/capabilities`);
+  } catch (e) {
+    if (!me.platform) throw e;
+    $("admin-nav").hidden = true;
+    $("access-nav").click();
+    return;
+  }
+  currentGrant = grant;
+  $("identity").textContent =
+    `${me.subject} · ${grant.role === "admin" ? "知识管理员" : "成员"} · ${(grant.tags ?? []).map((t) => (t === "technical" ? "技术" : "业务")).join(" / ") || "未设置表达标签"}`;
   $("admin-nav").hidden = grant.role !== "admin";
   const pref = await api(`${base()}/preferences`);
   prefVersion = pref.version;
@@ -125,7 +150,7 @@ async function changeDomain() {
   try {
     knowledge = await api(`${base()}/knowledge`);
   } catch (e) {
-    knowledge = { pages: [], procedures: [] };
+    knowledge = { pages: [] };
     error(e);
   }
   renderKnowledge();
@@ -140,13 +165,6 @@ for (const b of document.querySelectorAll("[data-view]"))
       n.classList.toggle("active", n === b);
   };
 function renderKnowledge() {
-  $("procedure").replaceChildren(
-    ...knowledge.procedures.map((p) => {
-      const o = el("option", p.title);
-      o.value = p.id;
-      return o;
-    }),
-  );
   $("revision-page").replaceChildren(
     ...knowledge.pages.map((p) => {
       const o = el("option", p.title);
@@ -167,29 +185,7 @@ function renderKnowledge() {
       }),
     ),
   );
-  renderInputs();
 }
-function renderInputs() {
-  const p = knowledge.procedures.find((p) => p.id === $("procedure").value);
-  $("inputs").replaceChildren(
-    ...(p?.inputs ?? []).map((f) => {
-      const label = el("label", f.question),
-        select = el("select");
-      select.dataset.field = f.id;
-      select.append(el("option", "请选择"));
-      select.firstChild.value = "";
-      for (const v of f.values) {
-        const o = el("option", String(v));
-        o.value = JSON.stringify(v);
-        select.append(o);
-      }
-      label.append(select);
-      return label;
-    }),
-  );
-}
-$("procedure").onchange = renderInputs;
-$("object").onchange = renderInputs;
 bind("question-form", async () => {
   if ($("remember").checked) {
     const p = await api(`${base()}/preferences`, "PATCH", {
@@ -200,16 +196,9 @@ bind("question-form", async () => {
     prefVersion = p.version;
   }
   $("answer").replaceChildren(el("p", "正在生成…"));
-  const inputs = {};
-  for (const s of $("inputs").querySelectorAll("select"))
-    if (s.value) inputs[s.dataset.field] = JSON.parse(s.value);
   const a = await api(`${base()}/answers`, "POST", {
     question: $("question").value,
-    procedureId: $("procedure").value || undefined,
     sessionId: session,
-    objectId: $("object").value || undefined,
-    inputs,
-    mode: $("mode").value,
     style: $("style").value,
     depth: $("depth").value,
   });
@@ -275,6 +264,14 @@ async function readAnswer() {
           }),
         );
     }
+    if (a.finishedAt)
+      $("answer").append(
+        el(
+          "div",
+          `${a.state === "complete" ? "生成完成，" : ""}耗时 ${((a.finishedAt - a.createdAt) / 1000).toFixed(1)} 秒`,
+          "meta",
+        ),
+      );
     $("cancel").hidden = !["queued", "running"].includes(a.state);
     $("feedback").hidden = false;
     if (
@@ -308,11 +305,24 @@ $("cancel").onclick = async () => {
     error(e);
   }
 };
+$("clear-preferences").onclick = async () => {
+  try {
+    const p = await api(`${base()}/preferences`, "DELETE", {
+      expectedVersion: prefVersion,
+    });
+    prefVersion = p.version;
+    $("style").value = p.style;
+    $("depth").value = p.depth;
+    $("remember").checked = false;
+  } catch (e) {
+    error(e);
+  }
+};
 bind("feedback", async () => {
   const t = await api(`${base()}/tickets`, "POST", {
     title: "答案反馈",
     description: $("feedback-text").value,
-    category: "knowledge",
+    category: $("feedback-category").value,
     answerId,
   });
   $("feedback").append(el("p", `已登记工单 ${t.id}`));
@@ -327,11 +337,27 @@ bind("ticket-form", async () => {
   $("ticket-form").reset();
   await listTickets();
 });
+const ticketStateLabels = {
+  submitted: "待受理",
+  triaged: "已分诊",
+  in_progress: "处理中",
+  waiting_reporter: "待补充材料",
+  resolved: "已解决待确认",
+  closed: "已关闭",
+  withdrawn: "已撤回",
+  rejected: "已拒绝",
+  duplicate: "重复",
+};
+const ticketCategoryLabels = { question: "咨询问题", knowledge: "知识更正" };
+const fmtTime = (ms) => new Date(ms).toLocaleString("zh-CN", { hour12: false });
 async function listTickets() {
   const tickets = await api(`${base()}/tickets`);
   $("ticket-list").replaceChildren(
     ...tickets.map((t) =>
-      button(`${t.title} · ${t.state}`, () => showTicket(t.id)),
+      button(
+        `${ticketCategoryLabels[t.category] ?? t.category}｜${t.title}｜${ticketStateLabels[t.state] ?? t.state}｜${t.owner}｜${fmtTime(t.createdAt)}`,
+        () => showTicket(t.id),
+      ),
     ),
   );
 }
@@ -339,33 +365,77 @@ async function showTicket(id) {
   const t = await api(`${base()}/tickets/${id}`),
     area = $("ticket-detail");
   area.replaceChildren(
-    el("h2", t.title),
+    el("h2", `${ticketCategoryLabels[t.category] ?? t.category}：${t.title}`),
     el("p", t.description),
-    el("p", `状态 ${t.state} · 版本 ${t.version}`),
+    el(
+      "p",
+      `状态：${ticketStateLabels[t.state] ?? t.state}（${t.state}） · 版本 ${t.version}`,
+    ),
+    el(
+      "p",
+      `上报人：${t.owner} · 登记：${fmtTime(t.createdAt)} · 最后更新：${fmtTime(t.updatedAt)}`,
+    ),
   );
-  for (const c of t.comments)
-    area.append(
-      el("p", `${c.internal ? "内部备注 · " : ""}${c.author}：${c.text}`),
+  if (t.evidence) {
+    const evidence = el("details");
+    evidence.append(el("summary", "反馈针对的原答案（证据快照）"));
+    if (t.evidence.question)
+      evidence.append(el("p", `原问题：${t.evidence.question}`));
+    evidence.append(
+      el("p", `依据知识版本：${t.evidence.releaseId.slice(0, 8)}`, "meta"),
     );
+    for (const b of t.evidence.blocks ?? []) {
+      evidence.append(el("div", b.text, "pre"));
+      if (b.citations?.length)
+        evidence.append(el("p", `引用页面：${b.citations.join("、")}`, "meta"));
+    }
+    area.append(evidence);
+  } else if (t.answerId)
+    area.append(el("p", `关联答案：${t.answerId}`, "meta"));
+  if (t.evidenceWarning)
+    area.append(el("p", `注意：${t.evidenceWarning}`, "warning"));
+  if (t.comments.length) {
+    area.append(el("h3", "处理记录"));
+    for (const c of t.comments)
+      area.append(
+        el(
+          "p",
+          `${fmtTime(c.at)} · ${c.author}${c.internal ? "（内部备注）" : ""}：${c.text}`,
+        ),
+      );
+  }
   const text = el("textarea");
   text.placeholder = "补充材料、回复或可核验处理结果";
   area.append(text);
+  if (currentGrant.role === "admin")
+    area.append(
+      el(
+        "p",
+        "处理流程：先分诊受理，再开始处理；需要时向用户请求材料或公开回复。知识更正须先在「知识」页提交修订并发布新版本，然后点“提交解决结果”并填入新版本 ID；用户确认后才关闭。",
+        "meta",
+      ),
+    );
   const actions =
     t.owner === me.subject
       ? [
-          ["reply", "补充"],
+          ["reply", "补充说明"],
           ["close", "确认解决"],
           ["withdraw", "撤回"],
           ["reopen", "重开"],
         ]
-      : [
-          ["triage", "分诊"],
-          ["start", "开始处理"],
-          ["request_info", "请求材料"],
-          ["reply", "公开回复"],
-          ["note", "内部备注"],
-          ["resolve", "提交解决结果"],
-        ];
+      : [];
+  if (currentGrant.role === "admin")
+    actions.push(
+      ["triage", "分诊（受理）"],
+      ["start", "开始处理"],
+      ["request_info", "请求用户补充材料"],
+      ["reply", "公开回复用户"],
+      ["note", "内部备注（仅管理员可见）"],
+      ["resolve", "提交解决结果（知识更正须填新版本 ID）"],
+      ["merge", "合并为重复工单"],
+      ["reject", "拒绝受理（须说明原因）"],
+      ["assign", "指定处理人"],
+    );
   for (const [action, label] of actions)
     area.append(
       button(label, async () => {
@@ -373,7 +443,22 @@ async function showTicket(id) {
           action === "resolve" && t.category === "knowledge"
             ? prompt("实际更正发布版本 ID")
             : undefined;
+        const targetId =
+          action === "merge"
+            ? prompt("目标工单 ID（不会向报告人开放目标内容）")
+            : undefined;
+        const assignee =
+          action === "assign"
+            ? prompt("具备本领域管理员资格的处理人账号")
+            : undefined;
+        if (
+          (action === "merge" && !targetId) ||
+          (action === "assign" && !assignee)
+        )
+          return;
         await api(`${base()}/tickets/${id}/actions`, "POST", {
+          targetId,
+          assignee,
           action,
           expectedVersion: t.version,
           text: text.value || undefined,
@@ -383,7 +468,101 @@ async function showTicket(id) {
         await listTickets();
       }),
     );
+  const policy = await api(`${base()}/ticket-attachment-policy`);
+  if (policy.enabled) {
+    area.append(
+      el("h3", "工单附件"),
+      el(
+        "p",
+        `仅支持 UTF-8 文本，最大 ${policy.maxBytes} 字节，保存 ${policy.retentionDays} 天；下载前再次验证权限。`,
+      ),
+    );
+    const attachments = await api(`${base()}/tickets/${id}/attachments`);
+    for (const a of attachments)
+      area.append(
+        button(
+          `${a.filename}${a.internal ? "（内部）" : ""} · 下载`,
+          async () => {
+            const response = await fetch(
+              `${base()}/tickets/${id}/attachments/${a.id}`,
+              { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+            );
+            if (!response.ok) throw new Error("附件不可读取或已过期");
+            const url = URL.createObjectURL(await response.blob()),
+              link = el("a");
+            link.href = url;
+            link.download = a.filename;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          },
+        ),
+      );
+    const file = el("input");
+    file.type = "file";
+    file.accept = ".txt,text/plain";
+    const internal = el("input");
+    internal.type = "checkbox";
+    area.append(file);
+    if (currentGrant.role === "admin") {
+      const label = el("label", "内部附件（仅管理员可见）");
+      label.append(internal);
+      area.append(label);
+    }
+    area.append(
+      button("上传附件", async () => {
+        const selected = file.files[0];
+        if (!selected) throw new Error("请选择文本附件");
+        if (selected.size > policy.maxBytes)
+          throw new Error("附件超过大小限制");
+        const bytes = new Uint8Array(await selected.arrayBuffer());
+        let binary = "";
+        for (const b of bytes) binary += String.fromCharCode(b);
+        await api(`${base()}/tickets/${id}/attachments`, "POST", {
+          filename: selected.name,
+          mediaType: "text/plain",
+          data: btoa(binary),
+          internal: internal.checked,
+          expectedVersion: t.version,
+        });
+        await showTicket(id);
+      }),
+    );
+  }
 }
+async function listMembers() {
+  const members = await api(`${base()}/members`);
+  $("member-list").replaceChildren(
+    ...members.map((m) =>
+      button(
+        `${m.subject} · ${m.role} · ${(m.tags ?? []).join(" / ")} · ${m.enabled ? "启用" : "停用"}`,
+        () => {
+          $("member-subject").value = m.subject;
+          $("member-version").value = m.version;
+          $("member-role").value = m.role;
+          $("member-enabled").checked = m.enabled;
+          $("member-business").checked = (m.tags ?? []).includes("business");
+          $("member-technical").checked = (m.tags ?? []).includes("technical");
+        },
+      ),
+    ),
+  );
+}
+bind("member-form", async () => {
+  await api(
+    `${base()}/members/${encodeURIComponent($("member-subject").value)}`,
+    "PUT",
+    {
+      role: $("member-role").value,
+      enabled: $("member-enabled").checked,
+      tags: [
+        $("member-business").checked ? "business" : null,
+        $("member-technical").checked ? "technical" : null,
+      ].filter(Boolean),
+      expectedVersion: Number($("member-version").value),
+    },
+  );
+  await listMembers();
+});
 bind("revision-form", async () => {
   const page = knowledge.pages.find((p) => p.id === $("revision-page").value);
   await api(`${base()}/revisions`, "POST", {
@@ -449,7 +628,7 @@ async function listAdmin() {
       );
       if (r.state === "submitted") {
         d.append(
-          button("运行固定回归样本", async () => {
+          button("运行金样例问答评估", async () => {
             for (const c of r.bundle.cases) {
               const e = await api(
                 `${base()}/releases/${r.id}/evaluations`,

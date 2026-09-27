@@ -53,6 +53,13 @@ export interface Grant extends Entity {
   subject: string;
   role: "member" | "admin";
   enabled: boolean;
+  tags?: ("business" | "technical")[];
+}
+interface CommandReceipt extends Entity {
+  outcomes: { operation: string; objectId?: string }[];
+}
+export function defaultStyle(grant: Grant): "business" | "technical" {
+  return grant.tags?.includes("technical") ? "technical" : "business";
 }
 
 export class Store {
@@ -60,7 +67,7 @@ export class Store {
   constructor(path: string) {
     this.db = new DatabaseSync(path);
     requireThat(
-      Number(this.db.prepare("PRAGMA user_version").get()?.user_version) <= 2,
+      Number(this.db.prepare("PRAGMA user_version").get()?.user_version) <= 3,
       503,
       "DATABASE_VERSION_UNSUPPORTED",
     );
@@ -70,6 +77,8 @@ export class Store {
       CREATE INDEX IF NOT EXISTS objects_scope ON objects(kind,domain);
       CREATE TABLE IF NOT EXISTS tokens(hash TEXT PRIMARY KEY,subject TEXT NOT NULL,platform INTEGER NOT NULL,expires INTEGER NOT NULL,kind TEXT NOT NULL DEFAULT 'api');
       CREATE TABLE IF NOT EXISTS commands(scope TEXT NOT NULL,key TEXT NOT NULL,digest TEXT NOT NULL,result TEXT NOT NULL,PRIMARY KEY(scope,key));
+      CREATE TABLE IF NOT EXISTS operational_events(id INTEGER PRIMARY KEY,at INTEGER NOT NULL,request_id TEXT NOT NULL,route TEXT NOT NULL,code TEXT NOT NULL,status INTEGER NOT NULL);
+      CREATE INDEX IF NOT EXISTS operational_events_time ON operational_events(at);
       CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY,at INTEGER NOT NULL,actor TEXT NOT NULL,domain TEXT NOT NULL,operation TEXT NOT NULL,object_id TEXT NOT NULL);
       `);
     if (
@@ -81,7 +90,7 @@ export class Store {
       this.db.exec(
         "ALTER TABLE tokens ADD COLUMN kind TEXT NOT NULL DEFAULT 'api'",
       );
-    this.db.exec("PRAGMA user_version=2");
+    this.db.exec("PRAGMA user_version=3");
   }
   close() {
     this.db.close();
@@ -173,6 +182,50 @@ export class Store {
       .prepare("SELECT * FROM audit WHERE domain=? ORDER BY id DESC LIMIT 200")
       .all(domain);
   }
+  operationalEvent(
+    requestId: string,
+    route: string,
+    code: string,
+    status: number,
+  ) {
+    this.db
+      .prepare(
+        "INSERT INTO operational_events(at,request_id,route,code,status) VALUES(?,?,?,?,?)",
+      )
+      .run(Date.now(), requestId, route, code, status);
+  }
+  operationalEvents(since = 0) {
+    return this.db
+      .prepare(
+        "SELECT at,request_id AS requestId,route,code,status FROM operational_events WHERE at>=? ORDER BY id DESC LIMIT 200",
+      )
+      .all(since);
+  }
+  cleanupOperationalData(eventCutoff: number, now: number) {
+    const eventsRemoved = Number(
+      this.db
+        .prepare("DELETE FROM operational_events WHERE at<?")
+        .run(eventCutoff).changes,
+    );
+    const tokensRemoved = Number(
+      this.db.prepare("DELETE FROM tokens WHERE expires<=?").run(now).changes,
+    );
+    let loginsRemoved = 0;
+    for (const login of this.list<Entity & { expires: number }>("login")) {
+      if (login.expires <= now) {
+        this.remove("login", login.id);
+        loginsRemoved++;
+      }
+    }
+    return { eventsRemoved, tokensRemoved, loginsRemoved };
+  }
+  commandReceipt(actor: Identity, domain: string, key: string) {
+    const receipt = this.get<CommandReceipt>(
+      "command-receipt",
+      hash([actor.subject, domain, key]),
+    );
+    return receipt?.outcomes.length === 1 ? receipt.outcomes[0] : undefined;
+  }
   command<T>(
     actor: Identity,
     domain: string,
@@ -189,6 +242,23 @@ export class Store {
     );
     return this.tx(() => {
       authorize();
+      const recordReceipt = (result: T) => {
+        if (!key.startsWith("wecom:")) return;
+        const receiptId = hash([actor.subject, domain, key]);
+        const previous = this.get<CommandReceipt>("command-receipt", receiptId);
+        const outcomes = previous?.outcomes ?? [];
+        if (!outcomes.some((o) => o.operation === operation))
+          outcomes.push({
+            operation,
+            objectId: (result as { id?: string } | null)?.id,
+          });
+        this.put<CommandReceipt>("command-receipt", {
+          id: receiptId,
+          domain,
+          version: (previous?.version ?? 0) + 1,
+          outcomes,
+        });
+      };
       const scope = hash([actor.subject, domain, operation]),
         digest = hash(body);
       const old = this.db
@@ -196,7 +266,9 @@ export class Store {
         .get(scope, key) as { digest: string; result: string } | undefined;
       if (old) {
         requireThat(old.digest === digest, 409, "IDEMPOTENCY_CONFLICT");
-        return JSON.parse(old.result) as T;
+        const result = JSON.parse(old.result) as T;
+        recordReceipt(result);
+        return result;
       }
       const result = execute();
       this.db
@@ -204,6 +276,7 @@ export class Store {
           "INSERT INTO commands(scope,key,digest,result) VALUES(?,?,?,?)",
         )
         .run(scope, key, digest, JSON.stringify(result));
+      recordReceipt(result);
       this.audit(
         actor,
         domain,

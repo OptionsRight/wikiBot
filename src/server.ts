@@ -2,12 +2,13 @@ import { mkdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { buildApp } from "./app.js";
-import { AnthropicGateway } from "./adapters/model.js";
+import { PiGateway } from "./adapters/model.js";
 import { WecomSocket } from "./adapters/wecom.js";
 import { jwtIdentity } from "./auth.js";
 import { recoveryProofSchema, type RecoveryAuthority } from "./operations.js";
 import { requireThat } from "./core.js";
 import { demoModel } from "./demo-model.js";
+import { wecomConfiguration, operationalRetention } from "./runtime-config.js";
 const env = process.env,
   host = env.HOST ?? "127.0.0.1",
   port = Number(env.PORT ?? 3000),
@@ -64,9 +65,6 @@ if (demo) {
   ) as { operator: string };
   bootstrap = { token: access.operator, subject: "demo-operator" };
 }
-const members = env.WECOM_MEMBERS_JSON
-  ? (JSON.parse(env.WECOM_MEMBERS_JSON) as Record<string, string>)
-  : {};
 const app = await buildApp({
   database,
   bootstrap,
@@ -74,13 +72,15 @@ const app = await buildApp({
   publicOrigin: origin,
   recovery: env.RECOVERY_MODE === "1",
   recoveryAuthority,
+  operationalRetention: operationalRetention(env),
   model: demo
     ? demoModel
     : env.ANTHROPIC_AUTH_TOKEN
-      ? new AnthropicGateway({
+      ? new PiGateway({
           baseURL:
             env.ANTHROPIC_BASE_URL ?? "https://open.bigmodel.cn/api/anthropic",
           token: env.ANTHROPIC_AUTH_TOKEN,
+          disableThinking: env.MODEL_THINKING === "disabled",
         })
       : undefined,
   sso:
@@ -96,20 +96,12 @@ const app = await buildApp({
           scope: env.OIDC_SCOPE ?? "openid profile",
         }
       : undefined,
-  wecom:
-    !demo &&
-    env.WECOM_ENABLED === "1" &&
-    env.WECOM_BOT_ID &&
-    env.WECOM_SECRET &&
-    env.WECOM_DOMAIN
-      ? {
-          botId: env.WECOM_BOT_ID,
-          domain: env.WECOM_DOMAIN,
-          members,
-          notifications: env.WECOM_NOTIFICATIONS_ENABLED === "1",
-          transport: new WecomSocket(env.WECOM_BOT_ID, env.WECOM_SECRET),
-        }
-      : undefined,
+  wecom: demo
+    ? undefined
+    : wecomConfiguration(env).map(({ secret, ...bot }) => ({
+        ...bot,
+        transport: new WecomSocket(bot.botId, secret),
+      })),
 });
 await app.listen({ host, port });
 process.stdout.write(

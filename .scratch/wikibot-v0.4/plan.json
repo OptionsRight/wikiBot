@@ -1,11 +1,1155 @@
 {
   "schema_version": 1,
-  "date": "2026-09-26",
+  "date": "2026-09-27",
   "status": "in-progress",
   "tracker": "local-markdown",
   "base_commit": "ab250d6159f5fef40b238334627b2ccfc1d3faf2",
   "source_kind": "reviewed-local-working-tree",
   "sources": [
+    {
+      "path": "docs/handoff/domain-knowledge-bot-design-v0.4.md",
+      "sha256": "f887a3a80c3804a096a4131c2adf380edfc768abd8de620f4d0e3dcc7c020763"
+    },
+    {
+      "path": "docs/handoff/development-handoff.md",
+      "sha256": "1556837ad47042b95423c27a284d3762aa51e60d1963eb027341c27c7ff2bc61"
+    },
+    {
+      "path": "CONTEXT.md",
+      "sha256": "56c88519a18f5d35830c75d3a2bba9bbe29cb8f2b02e2d75b46b722f1e1f7b70"
+    },
+    {
+      "path": "docs/adr/0001-exclusive-procedure-paths.md",
+      "sha256": "491241becc0498c345adc19a1ec79a7594288230fa240001ecc4aa5d8435aeb3"
+    },
+    {
+      "path": "docs/adr/0002-verify-state-before-restoring-service.md",
+      "sha256": "14ef76171df2efaa0da59f260c8018b4392b9f7956001743dc3ce696f67c1ec4"
+    },
+    {
+      "path": "docs/adr/0003-revalidate-known-model-changes.md",
+      "sha256": "79dd3867550a0fcb606207283d06f5832b76950735838ec86944869ff781dcc9"
+    },
+    {
+      "path": "reviews/wikiBot-v0.4-grill-2026-09-26/REVIEW.md",
+      "sha256": "75f1a76285aba25b07987d4ea102fc3fa05b678aefe282893ba9a97fb761c7bb"
+    },
+    {
+      "path": "docs/adr/0004-retrieval-first-answers.md",
+      "sha256": "3a6296820a19d6c6cb8ee23110c7c7bad9069bbce2b620083c573e6fb10e81a9"
+    },
+    {
+      "path": ".scratch/wikibot-v0.4/spec.md",
+      "sha256": "49cfa75d440ae392c04dff84844dc45014b5fb3a5e7685d1384de07cab8cff66"
+    }
+  ],
+  "source_updates": [
+    {
+      "date": "2026-09-26",
+      "reason": "用户确认实际知识源由 llm-wiki skills 维护；修正桌面应用依赖假设并沿用技能更正入口。",
+      "changes": [
+        {
+          "path": "docs/handoff/domain-knowledge-bot-design-v0.4.md",
+          "before": "029431e522f48b5873eabd63a94f24d807feeaa8492aa711f9f730fa67a3ad5f",
+          "after": "11fa3371181c7367c9ca66865b037b1ded3e060ea0b2b51dee46368b2fc269f6"
+        },
+        {
+          "path": "docs/handoff/development-handoff.md",
+          "before": "ff63b3ab1c14bf3d7a822166ac9b8bda37f3eeb296ce2ce4dd1f06a790955fc2",
+          "after": "3d276610f8a3fb588a7aae282f335b524f9a1a94eb804f251f25cc3540cefa7c"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-27",
+      "reason": "ADR-0004检索方案及用户可配置权限/标签/Wiki目录要求；原规划哈希保留planning_sources，当前sources更新。",
+      "changes": [
+        {
+          "path": "docs/handoff/domain-knowledge-bot-design-v0.4.md",
+          "before": "11fa3371181c7367c9ca66865b037b1ded3e060ea0b2b51dee46368b2fc269f6",
+          "after": "f887a3a80c3804a096a4131c2adf380edfc768abd8de620f4d0e3dcc7c020763"
+        },
+        {
+          "path": "docs/handoff/development-handoff.md",
+          "before": "3d276610f8a3fb588a7aae282f335b524f9a1a94eb804f251f25cc3540cefa7c",
+          "after": "1556837ad47042b95423c27a284d3762aa51e60d1963eb027341c27c7ff2bc61"
+        },
+        {
+          "path": "CONTEXT.md",
+          "before": "8ed27d3abc73a1f7836deb446b57f165ee768354eb55444cd27041e0ecbb55f0",
+          "after": "56c88519a18f5d35830c75d3a2bba9bbe29cb8f2b02e2d75b46b722f1e1f7b70"
+        },
+        {
+          "path": "docs/adr/0001-exclusive-procedure-paths.md",
+          "before": "4332e3793f6fe8974e27592aa5f34a9bde4bb88d40d13df40c89c47735bcf471",
+          "after": "491241becc0498c345adc19a1ec79a7594288230fa240001ecc4aa5d8435aeb3"
+        }
+      ]
+    }
+  ],
+  "pending_approval": [],
+  "tickets": [
+    {
+      "id": 1,
+      "title": "验证公司模型的真实问答契约",
+      "path": "issues/01-model-compatibility.md",
+      "phase": "阶段 0",
+      "blocked_by": [],
+      "user_stories": [
+        16,
+        40,
+        49
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B",
+      "observed_implementation": "Pi 固定传输、严格协议与取消/换模回归，新增真实模型合成知识单次冒烟",
+      "remaining_acceptance": "实际服务/配额、长流/断流/取消保证和真实负载",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 2,
+      "title": "验证企微身份、消息与交付协议",
+      "path": "issues/02-wecom-identity-delivery-probe.md",
+      "phase": "阶段 0",
+      "blocked_by": [],
+      "user_stories": [
+        4,
+        5,
+        26,
+        27,
+        45
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "可信回调映射、单聊本地闭环；本轮真实认证与主动消息 ACK",
+      "remaining_acceptance": "公司跨端身份；当前链路真实入站/客户端/故障矩阵",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 3,
+      "title": "验证 llm_wiki 知识往返与来源更正",
+      "path": "issues/03-wiki-roundtrip-probe.md",
+      "phase": "阶段 0",
+      "blocked_by": [],
+      "user_stories": [
+        6,
+        36,
+        37,
+        47
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "D",
+      "observed_implementation": "稳定ID/只读快照、独立更正日志和隔离来源适配",
+      "remaining_acceptance": "原 llm-wiki 入口/版本、实际兼容往返",
+      "remaining_development": "原维护技能提供后实现并固定真实适配器；复杂来源依赖映射"
+    },
+    {
+      "id": 4,
+      "title": "成员登录并进入有资格访问的领域",
+      "path": "issues/04-authorized-domain-entry.md",
+      "phase": "试点",
+      "blocked_by": [
+        2
+      ],
+      "user_stories": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "E/C",
+      "observed_implementation": "平台配置成员/管理员/多标签，技术默认优先且不授予权限",
+      "remaining_acceptance": "公司 SSO、目录撤权、可信跨端映射",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 5,
+      "title": "维护者提交页面快照并查看最终差异",
+      "path": "issues/05-snapshot-review.md",
+      "phase": "试点",
+      "blocked_by": [
+        3,
+        4
+      ],
+      "user_stories": [
+        6,
+        7,
+        8
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "D",
+      "observed_implementation": "不可变快照、来源/附件哈希与链接校验、候选基线",
+      "remaining_acceptance": "真实维护者的最终包复核与批准",
+      "remaining_development": "实际来源完整依赖包整理"
+    },
+    {
+      "id": 6,
+      "title": "发布首个检索式知识版本并供成员浏览",
+      "path": "issues/06-publish-first-procedure.md",
+      "phase": "试点",
+      "blocked_by": [
+        1,
+        5
+      ],
+      "user_stories": [
+        2,
+        8,
+        11,
+        14
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B/E",
+      "observed_implementation": "逐题 outcome/引用判定，最新 attempt 门禁，人工复核后激活",
+      "remaining_acceptance": "批准知识与专家事实/引文核对",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 7,
+      "title": "网页自由文本问答与版本化引用",
+      "path": "issues/07-web-grounded-answer.md",
+      "phase": "试点",
+      "blocked_by": [
+        6
+      ],
+      "user_stories": [
+        11,
+        14,
+        15,
+        24
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B",
+      "observed_implementation": "检索预算、严格引用校验、最终校验后正文交付",
+      "remaining_acceptance": "真实业务正确性与当前网页/企微用户验收",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 8,
+      "title": "知识不足、来源冲突与必要澄清",
+      "path": "issues/08-exclusive-guidance-paths.md",
+      "phase": "试点",
+      "blocked_by": [
+        7
+      ],
+      "user_stories": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        16
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B",
+      "observed_implementation": "明确缺知识/澄清结果与题集预期判定",
+      "remaining_acceptance": "冲突资料、对象条件、范围外语义的专家评测",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 9,
+      "title": "使用当前可用历史理解自由文本追问",
+      "path": "issues/09-guidance-context.md",
+      "phase": "试点",
+      "blocked_by": [
+        8
+      ],
+      "user_stories": [
+        17,
+        18,
+        19,
+        20
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B/E",
+      "observed_implementation": "调用前重选当前有效且已ACK历史、澄清追问、换版隔离",
+      "remaining_acceptance": "真实多轮对象切换/更正语义",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 10,
+      "title": "切换回答视角与深度并管理偏好",
+      "path": "issues/10-response-preferences.md",
+      "phase": "试点",
+      "blocked_by": [
+        7
+      ],
+      "user_stories": [
+        4,
+        21,
+        22,
+        23
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B/C/E",
+      "observed_implementation": "双标签默认、显式覆盖/清除、四种自定义模板评估",
+      "remaining_acceptance": "专家核对四组合事实一致性及模板批准",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 11,
+      "title": "网页回答在重试、断线和崩溃后保持可查",
+      "path": "issues/11-durable-web-answer.md",
+      "phase": "试点",
+      "blocked_by": [
+        7
+      ],
+      "user_stories": [
+        24,
+        25,
+        42,
+        44
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B/E",
+      "observed_implementation": "持久幂等/期限/取消，子进程崩溃、评估恢复及迟到结果 fencing",
+      "remaining_acceptance": "真实供应方/客户端中断与交付未知故障矩阵",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 12,
+      "title": "企微单聊接入同一问答与交付服务",
+      "path": "issues/12-wecom-single-chat.md",
+      "phase": "试点",
+      "blocked_by": [
+        10,
+        11
+      ],
+      "user_stories": [
+        4,
+        5,
+        25,
+        26,
+        27
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "自由文本渠道、取消、超限、受众重验；命令提交后崩溃只读对账",
+      "remaining_acceptance": "真实自由文本往返、生成中取消/断线/限流与客户端确认",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 13,
+      "title": "成员登记独立问题并跟踪处理",
+      "path": "issues/13-standalone-question-ticket.md",
+      "phase": "试点",
+      "blocked_by": [
+        4
+      ],
+      "user_stories": [
+        28,
+        30,
+        31,
+        32
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "独立登记、公开处理查询、本人关闭/重开",
+      "remaining_acceptance": "真实跨端处理及报告人确认",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 14,
+      "title": "跨端登记、反馈并关联最小工单证据",
+      "path": "issues/14-answer-feedback.md",
+      "phase": "试点",
+      "blocked_by": [
+        12,
+        13
+      ],
+      "user_stories": [
+        28,
+        29,
+        30,
+        31,
+        32,
+        35
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "普通答案反馈与知识更正区分、最小证据、独立通知地址",
+      "remaining_acceptance": "真实反馈到处理/通知及客户端闭环",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 15,
+      "title": "管理员通过 bot 发起并跟踪知识修订",
+      "path": "issues/15-bot-maintenance-draft.md",
+      "phase": "试点",
+      "blocked_by": [
+        14
+      ],
+      "user_stories": [
+        34,
+        35
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C/D",
+      "observed_implementation": "修订草稿、来源基线、管理员/目录/helper配置与权限分离",
+      "remaining_acceptance": "实际维护入口与知识管理员授权联调",
+      "remaining_development": "来源workspace/window/reconcile专用网页表单（当前API/CLI可执行）"
+    },
+    {
+      "id": 16,
+      "title": "更正写回来源并经复核发布生效",
+      "path": "issues/16-source-correction-release.md",
+      "phase": "试点",
+      "blocked_by": [
+        15
+      ],
+      "user_stories": [
+        8,
+        31,
+        32,
+        35,
+        36,
+        37
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "D",
+      "observed_implementation": "受控写回、冲突/部分写入恢复、助手候选提交与复核发布",
+      "remaining_acceptance": "原技能重导入兼容性、真实更正批准与往返",
+      "remaining_development": "自动迁移redirect/入链更新；原技能固定版本适配；维护恢复专用表单"
+    },
+    {
+      "id": 17,
+      "title": "并发发布、紧急撤回与安全回滚",
+      "path": "issues/17-publication-revoke-rollback.md",
+      "phase": "试点",
+      "blocked_by": [
+        12
+      ],
+      "user_stories": [
+        38,
+        39
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "E",
+      "observed_implementation": "并发候选唯一胜出、撤回/回滚门禁、历史通知与有效性",
+      "remaining_acceptance": "真实撤回传播与原受众通知确认",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 18,
+      "title": "模型变更暂停服务并标记历史答案",
+      "path": "issues/18-model-change-gates.md",
+      "phase": "试点",
+      "blocked_by": [
+        17
+      ],
+      "user_stories": [
+        40,
+        41,
+        42
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "E/B",
+      "observed_implementation": "模型 epoch 复核、旧历史过滤、迟到/恢复竞争防复活",
+      "remaining_acceptance": "真实换模事件与业务复评/客户端告知",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 19,
+      "title": "部署后从可信状态恢复服务",
+      "path": "issues/19-trusted-recovery-operations.md",
+      "phase": "试点",
+      "blocked_by": [
+        16,
+        18
+      ],
+      "user_stories": [
+        23,
+        43,
+        44
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "E",
+      "observed_implementation": "恢复哈希重算、独立证明接口、周期归档、告警查询与显式元数据清理",
+      "remaining_acceptance": "公司证明服务、告警部署、RPO/RTO、完整业务保留策略及实现",
+      "remaining_development": "政策明确后的完整业务留存删除与公司告警平台集成"
+    },
+    {
+      "id": 20,
+      "title": "三类广告流程通过真实知识评估",
+      "path": "issues/20-three-advertising-flows.md",
+      "phase": "试点",
+      "blocked_by": [
+        9,
+        16
+      ],
+      "user_stories": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        19,
+        21,
+        22,
+        37,
+        49
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "B/F",
+      "observed_implementation": "36道可审核机器草稿、预期/来源/版本/执行字段；真实首跑历史保留",
+      "remaining_acceptance": "三主题批准范围、真实30–50题、逐题预期与专家签字",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 21,
+      "title": "完成受控试点验收并给出上线结论",
+      "path": "issues/21-controlled-pilot-acceptance.md",
+      "phase": "试点验收",
+      "blocked_by": [
+        19,
+        20
+      ],
+      "user_stories": [
+        49,
+        50
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "F",
+      "observed_implementation": "冻结分母的离线联合SLO统计工具、失败/未知保留",
+      "remaining_acceptance": "批准用户/配额/负载、真实1000请求、故障矩阵、业务观察与上线结论",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 22,
+      "title": "向获准群受众回答并安全引用历史",
+      "path": "issues/22-authorized-group-chat.md",
+      "phase": "完整范围",
+      "blocked_by": [
+        18
+      ],
+      "user_stories": [
+        34,
+        45,
+        46
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "完整可信群受众接口、发送前重验、受众变化清空历史；默认关闭",
+      "remaining_acceptance": "真实完整群目录适配和获准群实验",
+      "remaining_development": "公司可信完整群目录生产适配"
+    },
+    {
+      "id": 23,
+      "title": "完整来源格式、改名与静态附件往返",
+      "path": "issues/23-wiki-formats-attachments.md",
+      "phase": "完整范围",
+      "blocked_by": [
+        16
+      ],
+      "user_stories": [
+        6,
+        8,
+        36,
+        37,
+        47
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "D",
+      "observed_implementation": "稳定ID/redirect/更正保留，文本摘录和领域批准PNG/JPEG",
+      "remaining_acceptance": "完整实际来源格式、附件政策与原技能兼容；其他格式适配",
+      "remaining_development": "复杂来源映射/依赖包、引用式Markdown/HTML与未来获批格式适配"
+    },
+    {
+      "id": 24,
+      "title": "工单合并、内部备注和附件保持隔离",
+      "path": "issues/24-advanced-ticket-visibility.md",
+      "phase": "完整范围",
+      "blocked_by": [
+        14
+      ],
+      "user_stories": [
+        28,
+        29,
+        30,
+        31,
+        32,
+        33
+      ],
+      "status": "in-progress",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "C",
+      "observed_implementation": "合并/内部备注/对象级文本附件隔离、保留策略与网页/渠道处理",
+      "remaining_acceptance": "真实附件政策和交互；其他媒体类型适配",
+      "remaining_development": "未来获批的其他附件媒体格式适配"
+    },
+    {
+      "id": 25,
+      "title": "通过配置接入第二个非广告领域",
+      "path": "issues/25-second-domain-configuration.md",
+      "phase": "完整范围",
+      "blocked_by": [
+        8,
+        16
+      ],
+      "user_stories": [
+        1,
+        2,
+        3,
+        6,
+        8,
+        21,
+        22,
+        48
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "F",
+      "observed_implementation": "设备借用合成配置、四组合模板、公开发布问答隔离、双bot配置",
+      "remaining_acceptance": "真实非广告领域负责人/知识/题集/独立bot及维护全链路",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    },
+    {
+      "id": 26,
+      "title": "完成完整范围联合验收",
+      "path": "issues/26-full-scope-acceptance.md",
+      "phase": "完整验收",
+      "blocked_by": [
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "user_stories": [
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ],
+      "status": "blocked",
+      "evidence": "evidence/parallel-integration-acceptance.md",
+      "acceptance_complete": false,
+      "implementation_owner": "F",
+      "observed_implementation": "30验收ID与逐票证据对齐、交叉回归和联合统计工具",
+      "remaining_acceptance": "21–25全部真实证据、容量/业务观察和完整范围负责人结论",
+      "remaining_development": "本轮已集成范围无已知未修复缺陷；不代表全部真实验收通过"
+    }
+  ],
+  "acceptance_coverage": [
+    {
+      "id": "Q-01",
+      "scenario": "引用合法但缺关键事实/必要步骤",
+      "owner": 7,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "评估只验证引用/结果类型，关键事实须专家；未验收",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-02",
+      "scenario": "证据不足时伪装澄清输出操作建议",
+      "owner": 8,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "evaluations/text-stream 的knowledge_gap/clarification与协议反例；语义仍待专家",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-03",
+      "scenario": "装配时知识/模板切换",
+      "owner": 7,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "publication/context/template 固定版本与配置回归",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-04",
+      "scenario": "检索页面结论冲突",
+      "owner": 8,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "只由模型判断冲突，未有专家冲突题验收",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-05",
+      "scenario": "无命中与有命中但证据不足",
+      "owner": 8,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "answers/evaluations 无命中及显式缺口回归",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-06",
+      "scenario": "自由文本对象切换/不明",
+      "owner": 9,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "context 澄清追问；真实对象切换仍待专家",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-07",
+      "scenario": "承诺范围内检索或回答失败不得改分母",
+      "owner": 8,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "acceptance-report 冻结分母与缺失/未知失败",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-08",
+      "scenario": "历史快照后撤回/换模或发布更新",
+      "owner": 9,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "context/model-change/revocation 历史当前有效性",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "Q-09",
+      "scenario": "未交付/unknown历史与旧回复恢复已纠正事实",
+      "owner": 9,
+      "checks": [
+        20,
+        21,
+        26
+      ],
+      "local_evidence": "context 未ACK/取消历史隔离；纠正语义仍待专家",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "P-01",
+      "scenario": "同 epoch 候选竞争",
+      "owner": 17,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "publication 并发候选唯一胜出",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "P-02",
+      "scenario": "候选检查与撤回竞争",
+      "owner": 17,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "publication/revocation 撤回与发布门禁",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "P-03",
+      "scenario": "撤回后的空指针修复",
+      "owner": 17,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "revocation 撤回后空指针新版本发布",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-01",
+      "scenario": "入站接收事务崩溃重放",
+      "owner": 11,
+      "checks": [
+        12,
+        21,
+        26
+      ],
+      "local_evidence": "durability/channel-reconciliation 提交前后子进程退出与只读对账",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-02",
+      "scenario": "旧 worker 迟到结果",
+      "owner": 11,
+      "checks": [
+        18,
+        21,
+        26
+      ],
+      "local_evidence": "evaluations 恢复后迟到结果拒绝",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-03",
+      "scenario": "模型已调用但结果未保存",
+      "owner": 11,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "durability 模型调用中进程退出不重生成",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-04",
+      "scenario": "通知发送后丢失回执",
+      "owner": 12,
+      "checks": [
+        14,
+        21,
+        24,
+        26
+      ],
+      "local_evidence": "notifications/wecom-socket 丢ACK unknown不重发",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-05",
+      "scenario": "恢复到撤回/撤权之前",
+      "owner": 19,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "recovery 独立证明替身撤权/撤回/模型epoch",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "R-06",
+      "scenario": "旧 pending 的执行未知",
+      "owner": 19,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "recovery 旧通知/评估未知与独立恢复",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "M-01",
+      "scenario": "已知模型变化的新调用/激活",
+      "owner": 18,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "model-change/publication 模型资格门禁",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "M-02",
+      "scenario": "历史已交付/未交付范围",
+      "owner": 18,
+      "checks": [
+        19,
+        21,
+        22,
+        26
+      ],
+      "local_evidence": "citations/context/late-ack 交付范围与当前有效性",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "M-03",
+      "scenario": "变更后进行中/迟到结果",
+      "owner": 18,
+      "checks": [
+        21,
+        26
+      ],
+      "local_evidence": "evaluations/model-change 迟到结果及待复核",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "M-04",
+      "scenario": "新回归不清除历史警示",
+      "owner": 18,
+      "checks": [
+        19,
+        21,
+        26
+      ],
+      "local_evidence": "model-change 既有历史警示不被新模型资格清除",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "A-01",
+      "scenario": "伪造角色/工具/旧按钮",
+      "owner": 4,
+      "checks": [
+        10,
+        15,
+        21,
+        26
+      ],
+      "local_evidence": "access/auth/source-maintenance 角色/助手权限隔离",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "A-02",
+      "scenario": "跨域或他人私人对话",
+      "owner": 4,
+      "checks": [
+        14,
+        15,
+        21,
+        22,
+        25,
+        26
+      ],
+      "local_evidence": "second-domain/ticket-privacy/context 跨域跨人对象边界",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "A-03",
+      "scenario": "提交之后管理员撤权",
+      "owner": 16,
+      "checks": [
+        17,
+        21,
+        26
+      ],
+      "local_evidence": "publication/source-maintenance 管理员当前资格",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "A-04",
+      "scenario": "合并/附件/内部备注隔离",
+      "owner": 24,
+      "checks": [
+        26
+      ],
+      "local_evidence": "ticket-attachments/ticket-privacy 合并备注与文本附件",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "C-01",
+      "scenario": "撤回时排队正文/网页重连",
+      "owner": 17,
+      "checks": [
+        18,
+        21,
+        22,
+        26
+      ],
+      "local_evidence": "citations/revocation/late-ack 撤回后不可补正文",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "C-02",
+      "scenario": "多块/迟到回执/最终超限",
+      "owner": 12,
+      "checks": [
+        21,
+        22,
+        26
+      ],
+      "local_evidence": "channel-controls/channel-timeout/late-ack 回执/取消/期限；真实字节上限待验",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "W-01",
+      "scenario": "来源冲突/部分写入/再导入",
+      "owner": 16,
+      "checks": [
+        20,
+        21,
+        23,
+        26
+      ],
+      "local_evidence": "controlled-source/source-helper/source-formats 冲突/部分写入/重导入/改名",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    },
+    {
+      "id": "W-02",
+      "scenario": "页面、金样例与发布配置同步复核",
+      "owner": 16,
+      "checks": [
+        20,
+        21,
+        23,
+        26
+      ],
+      "local_evidence": "revisions/procedures/evaluations 来源候选与配置题集绑定",
+      "real_acceptance_complete": false,
+      "evidence": "evidence/parallel-integration-acceptance.md"
+    }
+  ],
+  "approval": {
+    "date": "2026-09-26",
+    "basis": "用户调用 implement 并要求完成规划的 spec；沿用公开业务行为测试边界。"
+  },
+  "implementation_evidence": "evidence/implementation.md",
+  "remaining_inputs": [
+    "公司模型标准API服务类型/配额、真实故障和负载环境",
+    "公司SSO与可信企微身份/群受众目录",
+    "通过配置授权的知识负责人、三广告主题批准范围与30–50条专家真题",
+    "原llm-wiki技能定义/版本与受控来源往返",
+    "独立当前恢复证明及运维/保留政策",
+    "真实第二个非广告领域、附件政策及业务观察"
+  ],
+  "follow_up_evidence": [
+    "evidence/pi-transport.md",
+    "evidence/retrieval-pivot.md",
+    "evidence/wecom-dialogue.md",
+    "evidence/parallel-spec-alignment.md",
+    "evidence/parallel-answer-quality.md",
+    "evidence/parallel-channel-feedback.md",
+    "evidence/parallel-source-maintenance.md",
+    "evidence/parallel-runtime-reliability.md",
+    "evidence/parallel-integration-acceptance.md"
+  ],
+  "current_decision": "docs/adr/0004-retrieval-first-answers.md",
+  "status_semantics": "blocked 表示整票外部验收受阻，不禁止本地工程。observed_implementation 记录已集成能力，acceptance_complete 仅在全部实际验收满足时为true；全部整票仍未完成。",
+  "pending_decisions": [
+    {
+      "id": "PD-01",
+      "decision": "是否根据真实负载修改原3秒/10秒联合SLO",
+      "owner": "业务/试点负责人",
+      "current_rule": "默认15秒运行期限已接受；原≥95%联合SLO未修改，先测量再决定"
+    },
+    {
+      "id": "PD-02",
+      "decision": "真实知识支持范围、专家金样例预期和上线质量判定",
+      "owner": "知识负责人/业务专家",
+      "current_rule": "沿用30–50真实题与关键错误先修复；无获批准新质量阈值，3条实施者草稿不足"
+    },
+    {
+      "id": "PD-03",
+      "decision": "部署RPO/RTO、告警值守和内容/附件保留政策",
+      "owner": "运维/业务负责人",
+      "current_rule": "可信恢复门禁保留，工程默认值或合成演练不代替批准"
+    },
+    {
+      "id": "PD-04",
+      "decision": "实际llm-wiki技能入口、版本及更正摄入约定",
+      "owner": "知识维护者",
+      "current_rule": "Wiki目录可配置，真实来源默认只读；隔离副本不证明原技能兼容"
+    },
+    {
+      "id": "PD-05",
+      "decision": "真实群受众目录、附件允许范围及第二领域内容",
+      "owner": "对应领域/身份负责人",
+      "current_rule": "未验证范围不开放；可先实现配置及合成回归"
+    }
+  ],
+  "parallel_handoff": {
+    "owner": "F",
+    "review_base": "75c6dc026fe8c2f91e5ff329cc2fce6615f5b48b",
+    "rule": "A只同步规格；F收齐各报告后更新总状态，不推送、不发布外部追踪。",
+    "status": "integrated-local-validation-complete-real-acceptance-pending",
+    "validation": {
+      "typecheck": "passed",
+      "build": "passed",
+      "tests": 99,
+      "passed": 99,
+      "failed": 0,
+      "scope": "local-contract-and-process-tests-not-real-business-acceptance",
+      "post_review_targeted": "11 source/submission tests passed; 5 CLI/correction tests passed; typecheck/build passed"
+    },
+    "review": {
+      "standards_open": 0,
+      "spec_open": 0,
+      "fixed": "P3 duplicated source client; P2 alternate Markdown dependency bypass"
+    }
+  },
+  "planning_sources": [
     {
       "path": "docs/handoff/domain-knowledge-bot-design-v0.4.md",
       "sha256": "11fa3371181c7367c9ca66865b037b1ded3e060ea0b2b51dee46368b2fc269f6"
@@ -34,828 +1178,5 @@
       "path": "reviews/wikiBot-v0.4-grill-2026-09-26/REVIEW.md",
       "sha256": "75f1a76285aba25b07987d4ea102fc3fa05b678aefe282893ba9a97fb761c7bb"
     }
-  ],
-  "source_updates": [
-    {
-      "date": "2026-09-26",
-      "reason": "用户确认实际知识源由 llm-wiki skills 维护；修正桌面应用依赖假设并沿用技能更正入口。",
-      "changes": [
-        {
-          "path": "docs/handoff/domain-knowledge-bot-design-v0.4.md",
-          "before": "029431e522f48b5873eabd63a94f24d807feeaa8492aa711f9f730fa67a3ad5f",
-          "after": "11fa3371181c7367c9ca66865b037b1ded3e060ea0b2b51dee46368b2fc269f6"
-        },
-        {
-          "path": "docs/handoff/development-handoff.md",
-          "before": "ff63b3ab1c14bf3d7a822166ac9b8bda37f3eeb296ce2ce4dd1f06a790955fc2",
-          "after": "3d276610f8a3fb588a7aae282f335b524f9a1a94eb804f251f25cc3540cefa7c"
-        }
-      ]
-    }
-  ],
-  "pending_approval": [],
-  "tickets": [
-    {
-      "id": 1,
-      "title": "验证公司模型的真实问答契约",
-      "path": "issues/01-model-compatibility.md",
-      "phase": "阶段 0",
-      "blocked_by": [],
-      "user_stories": [
-        16,
-        40,
-        49
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 2,
-      "title": "验证企微身份、消息与交付协议",
-      "path": "issues/02-wecom-identity-delivery-probe.md",
-      "phase": "阶段 0",
-      "blocked_by": [],
-      "user_stories": [
-        4,
-        5,
-        26,
-        27,
-        45
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 3,
-      "title": "验证 llm_wiki 知识往返与来源更正",
-      "path": "issues/03-wiki-roundtrip-probe.md",
-      "phase": "阶段 0",
-      "blocked_by": [],
-      "user_stories": [
-        6,
-        36,
-        37,
-        47
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 4,
-      "title": "成员登录并进入有资格访问的领域",
-      "path": "issues/04-authorized-domain-entry.md",
-      "phase": "试点",
-      "blocked_by": [
-        2
-      ],
-      "user_stories": [
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 5,
-      "title": "维护者提交快照并查看最终差异",
-      "path": "issues/05-snapshot-review.md",
-      "phase": "试点",
-      "blocked_by": [
-        3,
-        4
-      ],
-      "user_stories": [
-        6,
-        7,
-        8
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 6,
-      "title": "发布一条固定流程并供成员浏览",
-      "path": "issues/06-publish-first-procedure.md",
-      "phase": "试点",
-      "blocked_by": [
-        1,
-        5
-      ],
-      "user_stories": [
-        2,
-        8,
-        11,
-        14
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 7,
-      "title": "网页问答返回完整流程与可信引用",
-      "path": "issues/07-web-grounded-answer.md",
-      "phase": "试点",
-      "blocked_by": [
-        6
-      ],
-      "user_stories": [
-        11,
-        14,
-        15,
-        24
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 8,
-      "title": "按支持范围澄清并选择唯一完整路径",
-      "path": "issues/08-exclusive-guidance-paths.md",
-      "phase": "试点",
-      "blocked_by": [
-        7
-      ],
-      "user_stories": [
-        9,
-        10,
-        11,
-        12,
-        13,
-        16
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 9,
-      "title": "按咨询对象继承输入并按语义重确认",
-      "path": "issues/09-guidance-context.md",
-      "phase": "试点",
-      "blocked_by": [
-        8
-      ],
-      "user_stories": [
-        17,
-        18,
-        19,
-        20
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 10,
-      "title": "切换回答视角与深度并管理偏好",
-      "path": "issues/10-response-preferences.md",
-      "phase": "试点",
-      "blocked_by": [
-        7
-      ],
-      "user_stories": [
-        4,
-        21,
-        22,
-        23
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 11,
-      "title": "网页回答在重试、断线和崩溃后保持可查",
-      "path": "issues/11-durable-web-answer.md",
-      "phase": "试点",
-      "blocked_by": [
-        7
-      ],
-      "user_stories": [
-        24,
-        25,
-        42,
-        44
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 12,
-      "title": "企微单聊接入同一问答与交付服务",
-      "path": "issues/12-wecom-single-chat.md",
-      "phase": "试点",
-      "blocked_by": [
-        10,
-        11
-      ],
-      "user_stories": [
-        4,
-        5,
-        25,
-        26,
-        27
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 13,
-      "title": "成员登记独立问题并跟踪处理",
-      "path": "issues/13-standalone-question-ticket.md",
-      "phase": "试点",
-      "blocked_by": [
-        4
-      ],
-      "user_stories": [
-        28,
-        30,
-        31,
-        32
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 14,
-      "title": "跨端登记、反馈并关联最小工单证据",
-      "path": "issues/14-answer-feedback.md",
-      "phase": "试点",
-      "blocked_by": [
-        12,
-        13
-      ],
-      "user_stories": [
-        28,
-        29,
-        30,
-        31,
-        32,
-        35
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 15,
-      "title": "管理员通过 bot 发起并跟踪知识修订",
-      "path": "issues/15-bot-maintenance-draft.md",
-      "phase": "试点",
-      "blocked_by": [
-        14
-      ],
-      "user_stories": [
-        34,
-        35
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 16,
-      "title": "更正写回来源并经复核发布生效",
-      "path": "issues/16-source-correction-release.md",
-      "phase": "试点",
-      "blocked_by": [
-        15
-      ],
-      "user_stories": [
-        8,
-        31,
-        32,
-        35,
-        36,
-        37
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 17,
-      "title": "并发发布、紧急撤回与安全回滚",
-      "path": "issues/17-publication-revoke-rollback.md",
-      "phase": "试点",
-      "blocked_by": [
-        12
-      ],
-      "user_stories": [
-        38,
-        39
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 18,
-      "title": "模型变更暂停服务并标记历史答案",
-      "path": "issues/18-model-change-gates.md",
-      "phase": "试点",
-      "blocked_by": [
-        17
-      ],
-      "user_stories": [
-        40,
-        41,
-        42
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 19,
-      "title": "部署后从可信状态恢复服务",
-      "path": "issues/19-trusted-recovery-operations.md",
-      "phase": "试点",
-      "blocked_by": [
-        16,
-        18
-      ],
-      "user_stories": [
-        23,
-        43,
-        44
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 20,
-      "title": "三类广告流程通过真实知识评估",
-      "path": "issues/20-three-advertising-flows.md",
-      "phase": "试点",
-      "blocked_by": [
-        9,
-        16
-      ],
-      "user_stories": [
-        9,
-        10,
-        11,
-        12,
-        13,
-        19,
-        21,
-        22,
-        37,
-        49
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 21,
-      "title": "完成受控试点验收并给出上线结论",
-      "path": "issues/21-controlled-pilot-acceptance.md",
-      "phase": "试点验收",
-      "blocked_by": [
-        19,
-        20
-      ],
-      "user_stories": [
-        49,
-        50
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 22,
-      "title": "向获准群受众回答并安全引用历史",
-      "path": "issues/22-authorized-group-chat.md",
-      "phase": "完整范围",
-      "blocked_by": [
-        18
-      ],
-      "user_stories": [
-        34,
-        45,
-        46
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 23,
-      "title": "完整来源格式、改名与静态附件往返",
-      "path": "issues/23-wiki-formats-attachments.md",
-      "phase": "完整范围",
-      "blocked_by": [
-        16
-      ],
-      "user_stories": [
-        6,
-        8,
-        36,
-        37,
-        47
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 24,
-      "title": "工单合并、内部备注和附件保持隔离",
-      "path": "issues/24-advanced-ticket-visibility.md",
-      "phase": "完整范围",
-      "blocked_by": [
-        14
-      ],
-      "user_stories": [
-        28,
-        29,
-        30,
-        31,
-        32,
-        33
-      ],
-      "status": "in-progress",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 25,
-      "title": "通过配置接入第二个非广告领域",
-      "path": "issues/25-second-domain-configuration.md",
-      "phase": "完整范围",
-      "blocked_by": [
-        8,
-        16
-      ],
-      "user_stories": [
-        1,
-        2,
-        3,
-        6,
-        8,
-        21,
-        22,
-        48
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    },
-    {
-      "id": 26,
-      "title": "完成完整范围联合验收",
-      "path": "issues/26-full-scope-acceptance.md",
-      "phase": "完整验收",
-      "blocked_by": [
-        21,
-        22,
-        23,
-        24,
-        25
-      ],
-      "user_stories": [
-        45,
-        46,
-        47,
-        48,
-        49,
-        50
-      ],
-      "status": "blocked",
-      "evidence": "evidence/implementation.md",
-      "acceptance_complete": false
-    }
-  ],
-  "acceptance_coverage": [
-    {
-      "id": "Q-01",
-      "scenario": "引用合法仍漏必要节点",
-      "owner": 7,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-02",
-      "scenario": "模型伪装澄清输出操作建议",
-      "owner": 8,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-03",
-      "scenario": "装配时知识/模板切换",
-      "owner": 7,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-04",
-      "scenario": "重叠条件与多命中",
-      "owner": 8,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-05",
-      "scenario": "零命中或 unknown 的区别",
-      "owner": 8,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-06",
-      "scenario": "咨询对象切换/不明",
-      "owner": 9,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-07",
-      "scenario": "支持范围内空洞/范围外",
-      "owner": 8,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-08",
-      "scenario": "跨版本字段语义兼容",
-      "owner": 9,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "Q-09",
-      "scenario": "旧摘要恢复失效输入",
-      "owner": 9,
-      "checks": [
-        20,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "P-01",
-      "scenario": "同 epoch 候选竞争",
-      "owner": 17,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "P-02",
-      "scenario": "候选检查与撤回竞争",
-      "owner": 17,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "P-03",
-      "scenario": "撤回后的空指针修复",
-      "owner": 17,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "R-01",
-      "scenario": "入站接收事务崩溃重放",
-      "owner": 11,
-      "checks": [
-        12,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "R-02",
-      "scenario": "旧 worker 迟到结果",
-      "owner": 11,
-      "checks": [
-        18,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "R-03",
-      "scenario": "模型已调用但结果未保存",
-      "owner": 11,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "R-04",
-      "scenario": "通知发送后丢失回执",
-      "owner": 12,
-      "checks": [
-        14,
-        21,
-        24,
-        26
-      ]
-    },
-    {
-      "id": "R-05",
-      "scenario": "恢复到撤回/撤权之前",
-      "owner": 19,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "R-06",
-      "scenario": "旧 pending 的执行未知",
-      "owner": 19,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "M-01",
-      "scenario": "已知模型变化的新调用/激活",
-      "owner": 18,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "M-02",
-      "scenario": "历史已交付/未交付范围",
-      "owner": 18,
-      "checks": [
-        19,
-        21,
-        22,
-        26
-      ]
-    },
-    {
-      "id": "M-03",
-      "scenario": "变更后进行中/迟到结果",
-      "owner": 18,
-      "checks": [
-        21,
-        26
-      ]
-    },
-    {
-      "id": "M-04",
-      "scenario": "新回归不清除历史警示",
-      "owner": 18,
-      "checks": [
-        19,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "A-01",
-      "scenario": "伪造角色/工具/旧按钮",
-      "owner": 4,
-      "checks": [
-        10,
-        15,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "A-02",
-      "scenario": "跨域或他人私人对话",
-      "owner": 4,
-      "checks": [
-        14,
-        15,
-        21,
-        22,
-        25,
-        26
-      ]
-    },
-    {
-      "id": "A-03",
-      "scenario": "提交之后管理员撤权",
-      "owner": 16,
-      "checks": [
-        17,
-        21,
-        26
-      ]
-    },
-    {
-      "id": "A-04",
-      "scenario": "合并/附件/内部备注隔离",
-      "owner": 24,
-      "checks": [
-        26
-      ]
-    },
-    {
-      "id": "C-01",
-      "scenario": "撤回时排队正文/网页重连",
-      "owner": 17,
-      "checks": [
-        18,
-        21,
-        22,
-        26
-      ]
-    },
-    {
-      "id": "C-02",
-      "scenario": "多块/迟到回执/最终超限",
-      "owner": 12,
-      "checks": [
-        21,
-        22,
-        26
-      ]
-    },
-    {
-      "id": "W-01",
-      "scenario": "来源冲突/部分写入/再导入",
-      "owner": 16,
-      "checks": [
-        20,
-        21,
-        23,
-        26
-      ]
-    },
-    {
-      "id": "W-02",
-      "scenario": "正文和流程结构同步复核",
-      "owner": 16,
-      "checks": [
-        20,
-        21,
-        23,
-        26
-      ]
-    }
-  ],
-  "approval": {
-    "date": "2026-09-26",
-    "basis": "用户调用 implement 并要求完成规划的 spec；沿用公开业务行为测试边界。"
-  },
-  "implementation_evidence": "evidence/implementation.md",
-  "remaining_inputs": [
-    "llm-wiki skill and controlled source workflow",
-    "knowledge administrator and three approved procedures with expert cases",
-    "corporate OIDC and WeCom identity/delivery exercise",
-    "independent recovery authority and operations policy",
-    "group audience directory, attachment policy and second real domain"
-  ],
-  "follow_up_evidence": [
-    "evidence/notifications-single-chat.md"
   ]
 }

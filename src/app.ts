@@ -6,6 +6,7 @@ import {
   Fault,
   requireThat,
   access,
+  defaultStyle,
   type Identity,
   type Domain,
   type Grant,
@@ -21,6 +22,7 @@ import {
   quarantine,
   registerOperations,
   type RecoveryAuthority,
+  type OperationalRetention,
 } from "./operations.js";
 import { registerChannel, type WecomOptions } from "./channel.js";
 import { cookieValue, registerAuth, type SsoOptions } from "./auth.js";
@@ -34,7 +36,8 @@ export interface AppOptions {
   publicOrigin?: string;
   recovery?: boolean;
   recoveryAuthority?: RecoveryAuthority;
-  wecom?: WecomOptions;
+  operationalRetention?: OperationalRetention;
+  wecom?: WecomOptions | WecomOptions[];
   sso?: SsoOptions;
 }
 declare module "fastify" {
@@ -62,6 +65,16 @@ export function platform(actor: Identity) {
 }
 
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
+  const channels = options.wecom
+    ? Array.isArray(options.wecom)
+      ? options.wecom
+      : [options.wecom]
+    : [];
+  requireThat(
+    new Set(channels.map((channel) => channel.botId)).size === channels.length,
+    400,
+    "DUPLICATE_BOT_CONFIGURATION",
+  );
   const store = new Store(options.database),
     app = Fastify({
       logger: false,
@@ -97,7 +110,19 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     }
   });
   app.setErrorHandler((error, request, reply) => {
-    if (error instanceof Fault)
+    if (error instanceof Fault) {
+      // Only stable codes and route templates cross the observability boundary.
+      // A failed diagnostic write must not replace the original access denial.
+      try {
+        store.operationalEvent(
+          request.id,
+          request.routeOptions.url ?? "unmatched",
+          /^[A-Z0-9_]+$/.test(error.code) ? error.code : "REQUEST_REJECTED",
+          error.status,
+        );
+      } catch {
+        /* Database failure is reported by the original response. */
+      }
       return reply.status(error.status).send({
         error: {
           code: error.code,
@@ -106,6 +131,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           requestId: request.id,
         },
       });
+    }
     if (
       error instanceof ZodError ||
       ("statusCode" in (error as object) &&
@@ -140,7 +166,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       session = cookieValue(request.headers.cookie, "wikibot_session");
     if (!bearer && session && !["GET", "HEAD"].includes(request.method))
       requireThat(
-        request.headers.origin === options.publicOrigin,
+        options.publicOrigin && request.headers.origin === options.publicOrigin,
         403,
         "ORIGIN_NOT_ALLOWED",
       );
@@ -222,6 +248,10 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       z
         .object({
           role: z.enum(["member", "admin"]),
+          tags: z
+            .array(z.enum(["business", "technical"]))
+            .max(2)
+            .optional(),
           enabled: z.boolean().default(true),
           expectedVersion: z.number().int().nonnegative(),
         })
@@ -249,6 +279,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           subject,
           role: input.role,
           enabled: input.enabled,
+          tags: input.tags ? [...new Set(input.tags)] : (old?.tags ?? []),
           version: input.expectedVersion + 1,
         });
       },
@@ -264,9 +295,24 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     store.audit(request.actor, "", "issue-local-token", subject);
     return { token, expiresInSeconds: 86400 };
   });
-  app.get("/api/domains/:domain/capabilities", async (request) =>
-    access(store, request.actor, path(request, "domain")),
-  );
+  app.get("/api/domains/:domain/capabilities", async (request) => {
+    const grant = access(store, request.actor, path(request, "domain"));
+    return {
+      ...grant,
+      tags: grant.tags ?? [],
+      defaultStyle: defaultStyle(grant),
+    };
+  });
+  app.get("/api/domains/:domain/members", async (request) => {
+    platform(request.actor);
+    const domain = path(request, "domain");
+    requireThat(store.get("domain", domain), 404, "NOT_FOUND");
+    return store.list<Grant>("grant", domain).map((grant) => ({
+      ...grant,
+      tags: grant.tags ?? [],
+      defaultStyle: defaultStyle(grant),
+    }));
+  });
   app.get("/api/domains/:domain/audit", async (request) => {
     access(store, request.actor, path(request, "domain"), true);
     return store.auditLog(path(request, "domain"));
@@ -278,13 +324,18 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   registerAnswers(app, store, answers);
   registerTickets(app, store, answers);
   registerRevisions(app, store);
-  registerOperations(app, store, options.recoveryAuthority);
-  if (options.wecom)
+  registerOperations(
+    app,
+    store,
+    options.recoveryAuthority,
+    options.operationalRetention,
+  );
+  for (const channel of channels)
     registerChannel(
       app,
       store,
       answers,
-      options.wecom,
+      channel,
       channelCredentials,
       options.publicOrigin,
     );

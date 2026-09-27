@@ -10,20 +10,40 @@ test("snapshot reads only declared regular Markdown files and detects changed co
   try {
     const bundle = sampleBundle();
     await mkdir(join(root, "workflows"));
-    await writeFile(
-      join(root, bundle.pages[0]!.path),
-      bundle.pages[0]!.content,
-    );
-    const result = await snapshot(root, bundle);
+    for (const page of bundle.pages)
+      await writeFile(join(root, page.path), page.content);
+    const { pages, ...rest } = bundle;
+    const manifest = {
+      ...rest,
+      pages: pages.map(({ content: _content, ...page }) => page),
+    };
+    const result = await snapshot(root, manifest);
     assert.equal(result.pages[0]!.content, bundle.pages[0]!.content);
     await writeFile(join(root, bundle.pages[0]!.path), "changed");
     await assert.rejects(
-      () => snapshot(root, bundle),
+      () => snapshot(root, manifest),
       /SOURCE_BASELINE_CONFLICT/,
     );
     await rm(join(root, bundle.pages[0]!.path));
     await symlink("/etc/passwd", join(root, bundle.pages[0]!.path));
-    await assert.rejects(() => snapshot(root, bundle), /SYMLINK_FORBIDDEN/);
+    await assert.rejects(() => snapshot(root, manifest), /SYMLINK_FORBIDDEN/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("snapshot rejects parent traversal before opening files outside the workspace", async () => {
+  const root = await mkdtemp(join(tmpdir(), "wikibot-snapshot-traversal-"));
+  try {
+    const bundle = sampleBundle();
+    const manifest = {
+      ...bundle,
+      pages: bundle.pages.map(({ content: _c, ...p }) => ({
+        ...p,
+        path: "../outside.md",
+      })),
+    };
+    await assert.rejects(() => snapshot(root, manifest), /INVALID_SOURCE_PATH/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -52,3 +52,38 @@ test("company bearer verification rejects an untrusted issuer and ignores self-a
     await new Promise<void>((r) => server.close(() => r()));
   }
 });
+
+test("persisted cookie sessions cannot mutate when the trusted public origin is unconfigured", async () => {
+  const { mkdtemp, rm } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { Store } = await import("../src/core.js");
+  const dir = await mkdtemp(join(tmpdir(), "wikibot-session-origin-"));
+  let app;
+  try {
+    const database = join(dir, "state.sqlite");
+    const store = new Store(database);
+    store.token(
+      "persisted-session",
+      { subject: "operator", platform: true },
+      Date.now() + 60000,
+      "session",
+    );
+    store.close();
+    app = await buildApp({ database });
+    const response = await app.inject({
+      method: "POST",
+      url: "/api/domains",
+      headers: {
+        cookie: "wikibot_session=persisted-session",
+        "idempotency-key": "origin-missing",
+      },
+      payload: { id: "untrusted", name: "untrusted" },
+    });
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.json().error.code, "ORIGIN_NOT_ALLOWED");
+  } finally {
+    await app?.close();
+    await rm(dir, { recursive: true, force: true });
+  }
+});

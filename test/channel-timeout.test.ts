@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { setup, publish } from "./helpers.js";
 import { demoModel } from "../src/demo-model.js";
 import type { Inbound, WecomTransport } from "../src/adapters/wecom.js";
-test("a channel timeout finishes the cumulative stream with an explicit incomplete status", async () => {
+// Use a short but real deadline so the timeout path runs against the actual
+// abort machinery without paying the full production budget in the suite.
+process.env.ANSWER_DEADLINE_MS = "5000";
+test("a channel timeout finishes the stream with an explicit incomplete status", async () => {
   let receive!: (e: Inbound) => Promise<void>,
     slow = false;
   const sent: { text: string; finish: boolean }[] = [];
@@ -45,10 +48,10 @@ test("a channel timeout finishes the cumulative stream with an explicit incomple
       botId: "test",
       userId: "alice",
       chatType: "single",
-      text: "示例\n对象：客户甲\n条件：scenario=new",
+      text: "示例流程怎么做",
       replyContext: {},
     });
-    assert.ok(sent.length >= 2);
+    assert.ok(sent.length >= 1);
     assert.equal(sent.at(-1)!.finish, true);
     assert.match(sent.at(-1)!.text, /未完整完成/);
     const receipts = (

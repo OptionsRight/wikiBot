@@ -37,7 +37,7 @@ test("a verified late successful channel receipt preserves the actually delivere
       botId: "test",
       userId: "alice",
       chatType: "single",
-      text: "示例\n对象：客户甲\n条件：scenario=new",
+      text: "示例流程怎么做",
       replyContext: {},
     });
     await sending;
@@ -67,7 +67,7 @@ test("a verified late successful channel receipt preserves the actually delivere
       )
     ).value;
     assert.equal(answer.review, "pending");
-    assert.ok(answer.blocks.length >= 3);
+    assert.ok(answer.blocks.length >= 1);
   } finally {
     releaseAck();
     await t.app.close();

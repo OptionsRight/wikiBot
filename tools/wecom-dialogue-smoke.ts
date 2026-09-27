@@ -18,6 +18,7 @@ const config = z
     botSecret: z.string().min(1),
     // Exact trusted callback from.userid, not a guessed account/send address.
     userId: z.string().min(1),
+    notifyUserId: z.string().min(1).optional(),
     minutes: z.number().int().min(1).max(30).default(20),
   })
   .strict()
@@ -45,7 +46,7 @@ const commands = [
 const commandKind = (text: string) =>
   commands.includes(text)
     ? text
-    : (["/条件", "/继续", "/登记", "/工单", "/反馈"].find((command) =>
+    : (["/登记", "/工单", "/反馈"].find((command) =>
         text.startsWith(command),
       ) ?? "question");
 function record(event: Record<string, unknown>) {
@@ -86,6 +87,9 @@ const t = await setup({
     botId: config.botId,
     domain: "ads",
     members: { [config.userId]: "alice" },
+    notificationRecipients: config.notifyUserId
+      ? { alice: config.notifyUserId }
+      : undefined,
     notifications: true,
     transport: {
       start(handler) {
@@ -155,7 +159,6 @@ const t = await setup({
               depth: answer.depth,
               review: answer.review,
               deliveredThrough: answer.deliveredThrough,
-              checklistComplete: answer.checklistComplete,
             });
           }
         });
@@ -176,11 +179,8 @@ const t = await setup({
           wireBytes: Buffer.byteLength(wireText),
           wireBodyHash: hash(wireText),
           markers: [
-            "请明确",
-            "scenario",
-            "准备材料",
-            "提交申请",
-            "核对结果",
+            "这是本地演示使用的合成内容",
+            "尚未覆盖",
             "生成完成",
             "已取消",
             "当前偏好",

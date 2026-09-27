@@ -10,12 +10,7 @@ test("model change pauses new work and exposes only previously acknowledged hist
       await t.request(
         "POST",
         "/api/domains/ads/answers",
-        {
-          question: "示例",
-          sessionId: "s",
-          objectId: "a",
-          inputs: { scenario: "new" },
-        },
+        { question: "示例流程怎么做", sessionId: "s" },
         t.alice,
       )
     ).value;
@@ -25,7 +20,7 @@ test("model change pauses new work and exposes only previously acknowledged hist
       undefined,
       t.alice,
     );
-    assert.ok(before.value.blocks.length >= 3);
+    assert.ok(before.value.blocks.length >= 1);
     await t.request(
       "POST",
       `/api/domains/ads/answers/${answer.id}/ack`,

@@ -16,6 +16,10 @@ import { bundleSchema, validateBundle, type Bundle } from "./procedures.js";
 import { invalidateCandidates, stopAnswer } from "./governance.js";
 import type { Answer } from "./answers.js";
 import { requireEvaluation } from "./evaluations.js";
+import {
+  authorizeSourceUpload,
+  validateSourceSubmission,
+} from "./source-maintenance.js";
 
 export interface Release extends Entity {
   bundle: Bundle;
@@ -119,9 +123,14 @@ export function registerPublication(app: FastifyInstance, store: Store) {
       "submit",
       key(request),
       bundle,
-      () => access(store, request.actor, domain, true),
+      () => {
+        if (store.get("grant", `${domain}:${request.actor.subject}`))
+          access(store, request.actor, domain, true);
+        else authorizeSourceUpload(store, request.actor, domain, bundle);
+      },
       () => {
         validateBundle(bundle);
+        validateSourceSubmission(store, domain, bundle);
         const d = store.get<Domain>("domain", domain)!;
         requireThat(!d.maintenance, 503, "RECOVERY_VERIFICATION_REQUIRED");
         return store.put<Release>("release", {
@@ -130,10 +139,7 @@ export function registerPublication(app: FastifyInstance, store: Store) {
           version: 1,
           bundle,
           descriptorHash: hash(bundle),
-          bundleHash: hash({
-            pages: bundle.pages,
-            procedures: bundle.procedures,
-          }),
+          bundleHash: hash(bundle.pages),
           state: "submitted",
           baseEpoch: d.epoch,
           baseActive: d.active,
@@ -299,7 +305,6 @@ export function registerPublication(app: FastifyInstance, store: Store) {
     return {
       release: { id: release.id, descriptorHash: release.descriptorHash },
       pages: release.bundle.pages,
-      procedures: release.bundle.procedures,
     };
   });
   app.post("/api/domains/:domain/releases/:id/revoke", async (request) => {

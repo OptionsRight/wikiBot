@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import AiBot from "@wecom/aibot-node-sdk";
-import { AnthropicGateway } from "../src/adapters/model.js";
+import { PiGateway } from "../src/adapters/model.js";
 
 // Credentials are provided in one stdin JSON line. No credentials or raw provider errors are persisted.
 const reader = createInterface({ input: process.stdin, terminal: false });
@@ -16,8 +16,13 @@ const config = JSON.parse(line) as {
   baseURL?: string;
 };
 const results: Record<string, unknown>[] = [];
+const piAiVersion = (
+  JSON.parse(
+    await readFile("node_modules/@earendil-works/pi-ai/package.json", "utf8"),
+  ) as { version: string }
+).version;
 if (config.modelToken) {
-  const gateway = new AnthropicGateway({
+  const gateway = new PiGateway({
     baseURL: config.baseURL ?? "https://open.bigmodel.cn/api/anthropic",
     token: config.modelToken,
   });
@@ -96,6 +101,7 @@ try {
 history.push({
   date: new Date().toISOString(),
   node: process.version,
+  transport: `@earendil-works/pi-ai@${piAiVersion}`,
   scope:
     "Synthetic model prompt and bot authentication only. No business messages sent.",
   results,

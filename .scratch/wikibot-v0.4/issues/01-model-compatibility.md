@@ -1,8 +1,8 @@
 # 01：验证公司模型的真实问答契约
 
-**What to build:** 用公司批准的真实模型服务完成一条带引用的流程回答与一次受限工具读取，给出可采用的适配方式、限制和失败证据。
+**What to build:** 用公司批准的真实模型服务完成页面检索后的一次带引用问答，给出可采用的适配方式、限制和失败证据。
 
-**Blocked by:** 无任务依赖；取得下列外部前提后可开始。
+**Blocked by:** 无任务依赖；外部前提另行核验。
 
 **Status:** in-progress
 
@@ -24,7 +24,7 @@
 | 超时 | API_TIMEOUT_MS=3000000 | 原 CC 客户端为 50 分钟；wikiBot 在线请求沿用自身 deadline 和 3 秒/10 秒联合 SLO，不能复制此值作为服务成功标准 |
 | 客户端流量开关 | CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 | CC 客户端设置，不成为 wikiBot 模型协议参数 |
 
-用户配置与[智谱 Claude Code 官方示例](https://docs.bigmodel.cn/cn/coding-plan/tool/claude.md)的入口及模型映射一致；这只是配置依据，未进行带凭据的真实调用。[Claude Code 模型配置](https://code.claude.com/docs/en/model-config#pin-models-for-third-party-deployments)说明发送模型 ID 前会去掉 [1m] 后缀；不能把客户端语法直接当供应方 API 模型名称。
+用户配置与[智谱 Claude Code 官方示例](https://docs.bigmodel.cn/cn/coding-plan/tool/claude.md)的入口及模型映射一致；这只是当时配置依据；后续真实调用见 pi-transport.md 与 retrieval-pivot.md，不能据此推导账户配额合规性或质量达标。[Claude Code 模型配置](https://code.claude.com/docs/en/model-config#pin-models-for-third-party-deployments)说明发送模型 ID 前会去掉 [1m] 后缀；不能把客户端语法直接当供应方 API 模型名称。
 
 [智谱官方 FAQ](https://docs.bigmodel.cn/cn/coding-plan/faq.md)说明 Coding Plan 额度限定于指定工具/产品，自建应用及机器人应使用标准 API 服务。当前仅凭这段 env 无法判断账户服务类型；实施时据实际账户确定端点、鉴权和计费，不把 CC 中可用自动等同于 wikiBot 运行时已可用。该核对不改变既有 ModelGateway 和受控模型发布设计。
 
@@ -32,7 +32,7 @@
 
 - [ ] 核对适用于自建机器人的标准 API 服务、认证方式与配额；真实验证 glm-5.3 和可用的 glm-5.3-flash，记录直接请求模型 ID、上下文限制及流式/工具支持，不能直接照搬 CC 专用参数。
 - [ ] 固定实际模型部署、可观测版本、SDK/适配版本和请求参数；验证 Pi 候选能否满足契约，失败时给出替代适配方案，不改变业务边界。
-- [ ] 实测流式分段、结构化内容、工具返回、引用、长流程和取消；记录普通一次调用及复杂最多两次调用、一轮只读工具的行为。
+- [ ] 实测流式增量、完整 JSON 契约、引用、长回答和取消；记录检索加单次调用的行为，多跳工具读取为后续预留。
 - [ ] 验证错误、超时、断流、取消未生效和调用结果未知；明确哪些行为有供应方保证，哪些只能由平台保守处理。
 - [ ] 记录排队、首个有效块、完整输出、token 与失败类型，注明并发、长度和配额；实验数据不冒充正式 95% 联合 SLO 验收。
 - [ ] 产出脱敏调用/失败样例、可复现操作和契约结论；不可固定的别名明确列出已知变更通知与回归办法，不宣称能探测所有模型变化。
@@ -50,3 +50,17 @@
 ## 2026-09-26 实施记录
 
 本票尚未验收关闭。本地实现、真实证据与具体缺口见 [实施证据](../evidence/implementation.md) 中对应任务行；不以合成测试替代本票全部验收。
+
+## 2026-09-27 当前规格补充
+
+按 [ADR-0004](../../../docs/adr/0004-retrieval-first-answers.md) 与 [规格同步证据](../evidence/parallel-spec-alignment.md) 验收。默认 15 秒请求期限不替代原 3 秒首段/10 秒整答联合 SLO；旧实验保留当时语义，不代表当前检索式链路通过。
+
+**本轮核对基线：** PiGateway/模型契约回归；pi-transport 真实最小调用，retrieval-pivot 真实正文首跑。
+
+**尚需验收：** 账户服务/配额、真实取消/断流/长回答及质量负载。本轮负责 B，最终由 F 根据专属证据更新状态。
+
+## 2026-09-27 集成交接
+
+本地工程：Pi 固定传输、严格协议与取消/换模回归，新增真实模型合成知识单次冒烟。
+
+未关闭：实际服务/配额、长流/断流/取消保证和真实负载。完整验证与证据分层见 [集成验收](../evidence/parallel-integration-acceptance.md)。本地通过不等于整票真实验收完成。

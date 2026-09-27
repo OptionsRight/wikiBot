@@ -49,6 +49,38 @@
           "messagesSent": 0
         }
       ]
+    },
+    {
+      "date": "2026-09-26T10:55:05.324Z",
+      "node": "v24.13.0",
+      "transport": "@earendil-works/pi-ai@0.87.1",
+      "scope": "Synthetic model prompt and bot authentication only. No business messages sent.",
+      "results": [
+        {
+          "kind": "model",
+          "requestedModel": "glm-5.3",
+          "status": "connected",
+          "text": "OK.",
+          "model": "glm-5.3",
+          "inputTokens": 29,
+          "outputTokens": 4,
+          "firstTextMs": 2125.508417,
+          "totalMs": 2199.124167,
+          "stopReason": "end_turn"
+        },
+        {
+          "kind": "model",
+          "requestedModel": "glm-5.3-flash",
+          "status": "connected",
+          "text": "OK",
+          "model": "glm-5.3-flash",
+          "inputTokens": 29,
+          "outputTokens": 33,
+          "firstTextMs": 2530.970042,
+          "totalMs": 2598.7797920000003,
+          "stopReason": "end_turn"
+        }
+      ]
     }
   ]
 }

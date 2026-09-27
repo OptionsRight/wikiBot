@@ -1,3 +1,4 @@
+import { registerTicketAttachments } from "./ticket-attachments.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import {
@@ -42,7 +43,12 @@ export interface Ticket extends Entity {
   releaseId?: string;
   duplicateOf?: string;
   answerId?: string;
-  evidence?: { releaseId: string; descriptorHash: string; blocks: Block[] };
+  evidence?: {
+    releaseId: string;
+    descriptorHash: string;
+    question?: string;
+    blocks: Block[];
+  };
   createdAt: number;
   updatedAt: number;
   reopenCount: number;
@@ -93,6 +99,7 @@ export function registerTickets(
   store: Store,
   answers: AnswerService,
 ) {
+  registerTicketAttachments(app, store);
   app.post("/api/domains/:domain/tickets", async (request, reply) => {
     const domain = path(request, "domain"),
       input = body(
@@ -136,6 +143,7 @@ export function registerTickets(
             ? {
                 releaseId: answer.releaseId,
                 descriptorHash: answer.descriptorHash,
+                question: answer.question,
                 blocks: answer.blocks.filter(
                   (b) => b.sequence <= answer.deliveredThrough,
                 ),

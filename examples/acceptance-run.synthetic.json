@@ -1,0 +1,26 @@
+{
+  "kind": "synthetic",
+  "approvalReference": "format-example-only-not-an-approval",
+  "descriptorHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "frozenAt": 1,
+  "startedAt": 2,
+  "ordinaryRequestIds": [
+    "success-example",
+    "unknown-example",
+    "missing-example"
+  ],
+  "samples": [
+    {
+      "id": "success-example",
+      "usefulFirstMs": 2000,
+      "completeMs": 8000,
+      "outcome": "success"
+    },
+    {
+      "id": "unknown-example",
+      "usefulFirstMs": null,
+      "completeMs": null,
+      "outcome": "unknown"
+    }
+  ]
+}

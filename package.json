@@ -15,10 +15,13 @@
     "probe": "tsx tools/probe.ts",
     "demo": "tsx tools/demo.ts",
     "snapshot": "tsx tools/snapshot.ts",
-    "backup": "tsx tools/backup.ts"
+    "manifest": "tsx tools/manifest.ts",
+    "backup": "tsx tools/backup.ts",
+    "acceptance:report": "tsx tools/acceptance-report.ts",
+    "source:helper": "tsx tools/source-helper.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.128.0",
+    "@earendil-works/pi-ai": "0.87.1",
     "@wecom/aibot-node-sdk": "1.0.7",
     "fastify": "5.12.5",
     "jose": "6.2.12",

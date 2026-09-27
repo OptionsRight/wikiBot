@@ -94,16 +94,14 @@ export function startNotifications(
         else waitFor(error instanceof Fault ? error.code : "NOTICE_BLOCKED");
         continue;
       }
-      const recipients = Object.entries(options.members).filter(
-        ([, subject]) => subject === notice.owner,
-      );
+      const recipients = Object.entries(
+        options.notificationRecipients ?? {},
+      ).filter(([subject, address]) => subject === notice.owner && address);
       if (recipients.length !== 1) {
-        waitFor(
-          recipients.length ? "RECIPIENT_AMBIGUOUS" : "RECIPIENT_UNMAPPED",
-        );
+        waitFor("RECIPIENT_UNMAPPED");
         continue;
       }
-      const recipient = { botId: options.botId, userId: recipients[0]![0] };
+      const recipient = { botId: options.botId, userId: recipients[0]![1] };
       if (
         notice.recipient &&
         (notice.recipient.botId !== recipient.botId ||

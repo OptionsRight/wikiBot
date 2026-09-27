@@ -13,6 +13,11 @@ import {
 import { body, path, key } from "./app.js";
 import { currentRelease, type Release } from "./publication.js";
 import { ticketAccess } from "./tickets.js";
+import {
+  registerSourceMaintenance,
+  type SourceMaintenance,
+} from "./source-maintenance.js";
+import { registerSourceArtifacts } from "./source-artifact-routes.js";
 const change = z
   .object({
     pageId: z.string().min(1).max(100),
@@ -42,6 +47,7 @@ export interface Revision extends Entity {
   state: "draft" | "sync_pending" | "snapshot_ready";
   candidateId?: string;
   sourceEvidence?: string;
+  maintenance?: SourceMaintenance;
 }
 function read(store: Store, actor: Identity, domain: string, rid: string) {
   access(store, actor, domain, true);
@@ -56,6 +62,16 @@ function view(store: Store, r: Revision) {
   const original = store.get<Release>("release", r.baseReleaseId);
   return {
     ...r,
+    maintenance:
+      r.maintenance?.state === "writing" &&
+      r.maintenance.expiresAt <= Date.now()
+        ? {
+            ...r.maintenance,
+            state: "recovery_required",
+            reason: "SOURCE_LEASE_EXPIRED",
+          }
+        : r.maintenance,
+    candidateState: candidate?.state,
     state: candidate?.state === "active" ? "released" : r.state,
     releaseId: candidate?.state === "active" ? candidate.id : undefined,
     originalPages: original?.bundle.pages.filter((p) =>
@@ -63,7 +79,7 @@ function view(store: Store, r: Revision) {
     ),
     blocker:
       r.state === "sync_pending"
-        ? "等待维护者通过获准 llm-wiki 技能完成来源写回和重新快照"
+        ? "等待受控来源维护与重新快照；原技能未验证时使用人工交接"
         : undefined,
   };
 }
@@ -83,6 +99,8 @@ function validateChanges(release: Release, changes: Revision["changes"]) {
     );
 }
 export function registerRevisions(app: FastifyInstance, store: Store) {
+  registerSourceMaintenance(app, store);
+  registerSourceArtifacts(app, store);
   app.post("/api/domains/:domain/revisions", async (request, reply) => {
     const domain = path(request, "domain"),
       input = body(draftSchema, request);
@@ -143,10 +161,13 @@ export function registerRevisions(app: FastifyInstance, store: Store) {
         const r = read(store, request.actor, domain, rid);
         version(r, input.expectedVersion);
         requireThat(r.state === "draft", 409, "INVALID_STATE");
-        validateChanges(
-          currentRelease(store, request.actor, domain),
-          input.changes,
+        const release = currentRelease(store, request.actor, domain);
+        requireThat(
+          release.descriptorHash === r.baseDescriptorHash,
+          409,
+          "SOURCE_BASELINE_CONFLICT",
         );
+        validateChanges(release, input.changes);
         if (input.ticketId)
           ticketAccess(store, request.actor, domain, input.ticketId);
         const { expectedVersion: _version, ...fields } = input;
@@ -215,9 +236,23 @@ export function registerRevisions(app: FastifyInstance, store: Store) {
         const r = read(store, request.actor, domain, rid);
         version(r, input.expectedVersion);
         requireThat(r.state === "sync_pending", 409, "INVALID_STATE");
+        requireThat(
+          !r.maintenance || r.maintenance.state === "applied",
+          409,
+          "SOURCE_RECOVERY_REQUIRED",
+        );
+        const active = currentRelease(store, request.actor, domain);
+        requireThat(
+          active.id === r.baseReleaseId &&
+            active.descriptorHash === r.baseDescriptorHash,
+          409,
+          "SOURCE_BASELINE_CONFLICT",
+        );
         const candidate = store.get<Release>("release", input.candidateId);
         requireThat(
-          candidate?.domain === domain && candidate.state === "submitted",
+          candidate?.domain === domain &&
+            candidate.state === "submitted" &&
+            candidate.baseActive === r.baseReleaseId,
           409,
           "INVALID_CANDIDATE",
         );
