@@ -55,6 +55,13 @@ export interface Grant extends Entity {
   enabled: boolean;
   tags?: ("business" | "technical")[];
 }
+export interface SourceRepos extends Entity {
+  wikiRepository: string;
+  codeRepository: string;
+}
+export interface PasswordCredential extends Entity {
+  password: string;
+}
 interface CommandReceipt extends Entity {
   outcomes: { operation: string; objectId?: string }[];
 }

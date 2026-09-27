@@ -10,6 +10,8 @@ import {
   type Identity,
   type Domain,
   type Grant,
+  type SourceRepos,
+  type PasswordCredential,
 } from "./core.js";
 import type { ModelGateway } from "./adapters/model.js";
 import { registerPublication } from "./publication.js";
@@ -63,6 +65,11 @@ export function path(request: FastifyRequest, field: string): string {
 }
 export function platform(actor: Identity) {
   requireThat(actor.platform, 403, "FORBIDDEN");
+}
+// A domain is administered by its 1-2 domain admins; platform operators keep override access.
+function administer(store: Store, actor: Identity, domain: string) {
+  if (actor.platform) return;
+  access(store, actor, domain, true);
 }
 
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
@@ -202,8 +209,6 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   });
   for (const [url, file, type] of [
     ["/", "index.html", "text/html"],
-    ["/app.js", "app.js", "text/javascript"],
-    ["/answer-style.js", "answer-style.js", "text/javascript"],
     ["/app.css", "app.css", "text/css"],
   ])
     app.get(url!, async (_request, reply) =>
@@ -211,7 +216,54 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
         .type(type!)
         .send(await readFile(new URL(`../web/${file}`, import.meta.url))),
     );
+  for (const dir of ["src", "vendor"])
+    app.get(`/${dir}/*`, async (request, reply) => {
+      const file = decodeURIComponent(
+        String((request.params as Record<string, string>)["*"] ?? ""),
+      );
+      requireThat(/^(?!\.\.(?:\/|$))[\w./-]+\.m?js$/.test(file), 404, "NOT_FOUND");
+      reply
+        .type("text/javascript")
+        .send(await readFile(new URL(`../web/${dir}/${file}`, import.meta.url)));
+    });
   registerAuth(app, store, options.publicOrigin, options.sso, options.identity);
+  // 本地用户名密码登录：仅在未配置外部身份源时开放（此时服务也只能绑定回环地址）。
+  // 密码默认 DEFAULT_PASSWORD，为某账号写入 credential 后以该账号自己的密码为准。
+  const DEFAULT_PASSWORD = "1213456";
+  app.post("/auth/password", async (request, reply) => {
+    const input = body(
+      z
+        .object({
+          subject: z.string().min(1).max(100),
+          password: z.string().min(1).max(200),
+        })
+        .strict(),
+      request,
+    );
+    requireThat(!options.identity, 403, "EXTERNAL_IDENTITY_REQUIRED");
+    const known =
+      input.subject === options.bootstrap?.subject ||
+      store.list<Grant>("grant").some((g) => g.subject === input.subject);
+    requireThat(known, 401, "UNKNOWN_SUBJECT");
+    const credential = store.get<PasswordCredential>("credential", input.subject);
+    requireThat(
+      input.password === (credential?.password ?? DEFAULT_PASSWORD),
+      401,
+      "INVALID_CREDENTIALS",
+    );
+    const token = randomBytes(32).toString("base64url");
+    store.token(token, {
+      subject: input.subject,
+      platform: input.subject === options.bootstrap?.subject,
+    });
+    store.audit(
+      { subject: input.subject, platform: false },
+      "",
+      "password-login",
+      input.subject,
+    );
+    return reply.code(200).send({ token, expiresInSeconds: 86400 });
+  });
   app.get("/api/me", async (request) => request.actor);
   app.get("/api/domains", async (request) =>
     store
@@ -272,7 +324,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       `grant:${subject}`,
       key(request),
       input,
-      () => platform(request.actor),
+      () => administer(store, request.actor, domain),
       () => {
         requireThat(store.get("domain", domain), 404, "NOT_FOUND");
         const old = store.get<Grant>("grant", `${domain}:${subject}`);
@@ -288,6 +340,56 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
           role: input.role,
           enabled: input.enabled,
           tags: input.tags ? [...new Set(input.tags)] : (old?.tags ?? []),
+          version: input.expectedVersion + 1,
+        });
+      },
+    );
+  });
+  app.get("/api/domains/:domain/source-repos", async (request) => {
+    const domain = path(request, "domain");
+    administer(store, request.actor, domain);
+    return (
+      store.get<SourceRepos>("source-repos", domain) ?? {
+        id: domain,
+        domain,
+        wikiRepository: "",
+        codeRepository: "",
+        version: 0,
+      }
+    );
+  });
+  app.put("/api/domains/:domain/source-repos", async (request) => {
+    const domain = path(request, "domain");
+    const input = body(
+      z
+        .object({
+          wikiRepository: z.string().max(500).default(""),
+          codeRepository: z.string().max(500).default(""),
+          expectedVersion: z.number().int().nonnegative(),
+        })
+        .strict(),
+      request,
+    );
+    return store.command(
+      request.actor,
+      domain,
+      "source-repos-update",
+      key(request),
+      input,
+      () => administer(store, request.actor, domain),
+      () => {
+        requireThat(store.get("domain", domain), 404, "NOT_FOUND");
+        const old = store.get<SourceRepos>("source-repos", domain);
+        requireThat(
+          (old?.version ?? 0) === input.expectedVersion,
+          409,
+          "VERSION_CONFLICT",
+        );
+        return store.put<SourceRepos>("source-repos", {
+          id: domain,
+          domain,
+          wikiRepository: input.wikiRepository.trim(),
+          codeRepository: input.codeRepository.trim(),
           version: input.expectedVersion + 1,
         });
       },
@@ -312,8 +414,8 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     };
   });
   app.get("/api/domains/:domain/members", async (request) => {
-    platform(request.actor);
     const domain = path(request, "domain");
+    administer(store, request.actor, domain);
     requireThat(store.get("domain", domain), 404, "NOT_FOUND");
     return store.list<Grant>("grant", domain).map((grant) => ({
       ...grant,

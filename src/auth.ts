@@ -60,6 +60,7 @@ export function registerAuth(
   const flags = `HttpOnly; SameSite=Lax; Path=/${origin?.startsWith("https:") ? "; Secure" : ""}`;
   app.get("/auth/config", async () => ({
     sso: Boolean(sso && verify && origin),
+    password: !verify,
   }));
   app.get("/auth/login", async (_request, reply) => {
     requireThat(sso && verify && origin, 503, "SSO_NOT_CONFIGURED");

@@ -84,7 +84,7 @@ test("platform configures independent membership roles and multiple expression t
       "PUT",
       "/api/domains/ads/members/alice",
       update,
-      t.admin,
+      t.bob,
     );
     assert.equal(denied.status, 403);
     const saved = await t.request(
@@ -124,6 +124,106 @@ test("platform configures independent membership roles and multiple expression t
       expectedVersion: 2,
     });
     assert.deepEqual(preserved.value.tags, ["business", "technical"]);
+  } finally {
+    await t.app.close();
+  }
+});
+
+test("domain admins manage members and source repositories", async () => {
+  const { setup } = await import("./helpers.js");
+  const t = await setup();
+  try {
+    const denied = await t.request(
+      "PUT",
+      "/api/domains/ads/members/alice",
+      {
+        role: "member",
+        expectedVersion: 1,
+        tags: ["technical"],
+      },
+      t.bob,
+    );
+    assert.equal(denied.status, 403);
+    const byDomainAdmin = await t.request(
+      "PUT",
+      "/api/domains/ads/members/alice",
+      {
+        role: "member",
+        expectedVersion: 1,
+        tags: ["technical"],
+      },
+      t.admin,
+    );
+    assert.equal(byDomainAdmin.status, 200);
+    assert.deepEqual(byDomainAdmin.value.tags, ["technical"]);
+    assert.equal(
+      (await t.request("GET", "/api/domains/ads/members", undefined, t.admin))
+        .status,
+      200,
+    );
+    assert.equal(
+      (
+        await t.request(
+          "GET",
+          "/api/domains/ads/source-repos",
+          undefined,
+          t.alice,
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await t.request(
+          "GET",
+          "/api/domains/ads/source-repos",
+          undefined,
+          t.admin,
+        )
+      ).status,
+      200,
+    );
+    const saved = await t.request(
+      "PUT",
+      "/api/domains/ads/source-repos",
+      {
+        wikiRepository: "git@example.com:team/ads-wiki.git",
+        codeRepository: "git@example.com:team/ads-service.git",
+        expectedVersion: 0,
+      },
+      t.admin,
+    );
+    assert.equal(saved.status, 200);
+    assert.equal(saved.value.version, 1);
+    assert.equal(
+      saved.value.wikiRepository,
+      "git@example.com:team/ads-wiki.git",
+    );
+    assert.equal(
+      saved.value.codeRepository,
+      "git@example.com:team/ads-service.git",
+    );
+    assert.equal(
+      (
+        await t.request("PUT", "/api/domains/ads/source-repos", {
+          wikiRepository: "",
+          codeRepository: "",
+          expectedVersion: 0,
+        })
+      ).status,
+      409,
+    );
+    const reread = await t.request(
+      "GET",
+      "/api/domains/ads/source-repos",
+      undefined,
+      t.admin,
+    );
+    assert.equal(
+      reread.value.wikiRepository,
+      "git@example.com:team/ads-wiki.git",
+    );
+    assert.equal(reread.value.version, 1);
   } finally {
     await t.app.close();
   }
