@@ -182,7 +182,13 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     requireThat(actor, 401, "UNAUTHENTICATED");
     request.actor = actor;
   });
-  app.get("/health", async () => ({ status: "alive" }));
+  app.get("/health", async () => ({
+    status: "alive",
+    wecom: channels.map((channel) => ({
+      botId: channel.botId,
+      connected: channel.transport.ready?.() ?? null,
+    })),
+  }));
   app.addHook("onSend", async (_request, reply, payload) => {
     reply
       .header("Cache-Control", "no-store")

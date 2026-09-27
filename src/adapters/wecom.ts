@@ -45,26 +45,37 @@ export class WecomSocket implements WecomTransport {
   private client: InstanceType<typeof AiBot.WSClient>;
   private authenticated = false;
   constructor(botId: string, secret: string, options: { wsUrl?: string } = {}) {
+    // -1 = reconnect forever with exponential backoff. A finite count lets a
+    // network blip longer than the retry window leave the bot silently deaf
+    // until a process restart.
     this.client = new AiBot.WSClient({
       botId,
       secret,
       wsUrl: options.wsUrl,
-      maxReconnectAttempts: 5,
+      maxReconnectAttempts: -1,
       requestTimeout: 3000,
       logger: { debug() {}, info() {}, warn() {}, error() {} },
     });
-    this.client.on("error", () => {});
+    const log = (state: string) =>
+      process.stdout.write(`WECOM_SOCKET ${botId} ${state}\n`);
+    this.client.on("error", (error) => {
+      log(`error ${error instanceof Error ? error.message : String(error)}`);
+    });
     this.client.on("authenticated", () => {
       this.authenticated = true;
+      log("authenticated");
     });
     this.client.on("disconnected", () => {
       this.authenticated = false;
+      log("disconnected");
     });
-    this.client.on("reconnecting", () => {
+    this.client.on("reconnecting", (attempt) => {
       this.authenticated = false;
+      log(`reconnecting attempt=${attempt}`);
     });
     this.client.on("event.disconnected_event", () => {
       this.authenticated = false;
+      log("event.disconnected_event");
     });
   }
   start(handler: (event: Inbound) => Promise<void>) {
