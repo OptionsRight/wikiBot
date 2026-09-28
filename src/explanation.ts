@@ -124,6 +124,31 @@ export class JsonTextExtractor {
     this.text += s.slice(0, 12000 - this.text.length);
   }
 }
+// GLM occasionally emits a single invalid JSON escape inside the text string
+// (seen live: "\-" before a markdown dash). Strict JSON.parse then rejects the
+// whole document and the answer would degrade to raw-JSON passthrough. Drop
+// backslashes that begin no legal JSON escape, keeping the escaped character.
+function repairJsonEscapes(s: string): string {
+  let out = "";
+  let inString = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]!;
+    if (c === "\\") {
+      const next = s[i + 1];
+      if (inString && next && !'"\\/bfnrtu'.includes(next)) {
+        out += next;
+        i++;
+      } else if (next) {
+        out += c + next; // legal escape pair; skip both so \" cannot toggle state
+        i++;
+      } else out += c;
+      continue;
+    }
+    if (c === '"') inString = !inString;
+    out += c;
+  }
+  return out;
+}
 export async function generateAnswer(
   model: ModelGateway,
   input: {
@@ -171,41 +196,60 @@ export async function generateAnswer(
   requireThat(result.model === input.modelId, 502, "MODEL_ID_CHANGED");
   requireThat(result.stopReason === "end_turn", 502, "MODEL_OUTPUT_INCOMPLETE");
   // Parse ladder, strictest first: fenced JSON, raw JSON, then the outermost
-  // {...} inside prose. Never invent provenance — the final bare-markdown
-  // tier degrades to the top retrieved page and is marked in metrics.
+  // {...} inside prose, with an escape-repaired retry per tier. Never invent
+  // provenance — the final bare-markdown tier degrades to the top retrieved
+  // page and is marked in metrics.
   const raw = result.text.trim();
   const fenced = raw.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/)?.[1];
+  const retrieved = new Set(input.pages.map(({ page }) => page.id));
   let answer: z.infer<typeof answerSchema> | undefined;
   for (const candidate of [fenced, raw]) {
     if (!candidate) continue;
-    try {
-      answer = answerSchema.parse(JSON.parse(candidate));
-      break;
-    } catch {
-      const start = candidate.indexOf("{"),
-        end = candidate.lastIndexOf("}");
-      if (start < 0 || end <= start) continue;
+    for (const variant of [candidate, repairJsonEscapes(candidate)]) {
       try {
-        answer = answerSchema.parse(JSON.parse(candidate.slice(start, end + 1)));
+        answer = answerSchema.parse(JSON.parse(variant));
         break;
       } catch {
-        // try the next candidate
+        const start = variant.indexOf("{"),
+          end = variant.lastIndexOf("}");
+        if (start < 0 || end <= start) continue;
+        try {
+          answer = answerSchema.parse(
+            JSON.parse(variant.slice(start, end + 1)),
+          );
+          break;
+        } catch {
+          // try the next variant
+        }
       }
     }
+    if (answer) break;
   }
   let protocolFallback = false;
   if (!answer) {
     // With multi-turn history the model occasionally drops the JSON protocol
     // and emits bare markdown; deliver it grounded in the top page instead of
-    // failing the whole answer.
+    // failing the whole answer. Output still shaped like the JSON envelope
+    // (malformed beyond repair) must never be shown as protocol syntax: the
+    // extractor salvages its text field, and stated citations survive when
+    // they name retrieved pages.
     protocolFallback = true;
+    const salvage = new JsonTextExtractor();
+    salvage.push(raw);
+    const salvagedText = salvage.value().trim();
+    const salvagedCitations = [
+      ...raw.matchAll(/"citations"\s*:\s*\[([^\]]*)\]/g),
+    ].flatMap((m) =>
+      [...m[1]!.matchAll(/"([^"]*)"/g)].map((c) => c[1]!),
+    );
     answer = {
-      text: raw.slice(0, 12000),
-      citations: [input.pages[0]!.page.id],
+      text: (salvagedText || raw).slice(0, 12000),
+      citations: salvagedCitations.length
+        ? salvagedCitations
+        : [input.pages[0]!.page.id],
       outcome: "answer",
     };
   }
-  const retrieved = new Set(input.pages.map(({ page }) => page.id));
   requireThat(
     answer.citations.every((c) => retrieved.has(c)),
     502,

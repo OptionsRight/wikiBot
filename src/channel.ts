@@ -186,7 +186,7 @@ export function registerChannel(
     // chat id keys the session. When a checker IS wired, every group member
     // must be an authorized reader before any knowledge is generated.
     if (!options.groupAudience) return hash([event.chatId!]);
-    const audience = await options.groupAudience(event.chatId);
+    const audience = await options.groupAudience(event.chatId!);
     requireThat(
       audience?.complete &&
         audience.expiresAt > Date.now() &&

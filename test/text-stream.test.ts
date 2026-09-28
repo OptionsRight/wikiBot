@@ -87,6 +87,77 @@ test("model-declared knowledge gaps need no fabricated citation", async () => {
   assert.deepEqual(answer.citations, []);
 });
 
+test("an invalid JSON escape in the text string is repaired, not dumped raw", async () => {
+  // Live incident 2026-09-28: the model emitted "；\- 腾讯渠道…" and strict
+  // JSON.parse rejected the whole envelope; the fallback then delivered the
+  // raw JSON to the WeCom group.
+  const { answer, metrics } = await generateAnswer(
+    {
+      async generate(r) {
+        return {
+          text: '{"text":"链路说明：\\n- 第一步；\\- 腾讯渠道另走链路","citations":["guide"],"outcome":"answer"}',
+          model: r.model,
+          stopReason: "end_turn",
+          inputTokens: 1,
+          outputTokens: 1,
+          firstTextMs: 1,
+          totalMs: 1,
+        };
+      },
+    },
+    {
+      modelId: "test",
+      question: "示例流程",
+      pages: retrieve(bundleSchema.parse(sampleBundle()), "示例流程"),
+      style: "business",
+      depth: "beginner",
+    },
+    new AbortController().signal,
+  );
+  assert.equal(answer.text, "链路说明：\n- 第一步；- 腾讯渠道另走链路");
+  assert.deepEqual(answer.citations, ["guide"]);
+  assert.equal(
+    (metrics as { protocolFallback?: boolean }).protocolFallback,
+    undefined,
+  );
+});
+
+test("an unrepairable envelope degrades to its extracted text, never raw JSON", async () => {
+  // A raw control character inside the string defeats both JSON.parse and
+  // escape repair; the delivery must still show the text field's content.
+  const { answer, metrics } = await generateAnswer(
+    {
+      async generate(r) {
+        return {
+          text:
+            '{"text":"第一行\n第二行","citations":["guide"],"outcome":"answer"}',
+          model: r.model,
+          stopReason: "end_turn",
+          inputTokens: 1,
+          outputTokens: 1,
+          firstTextMs: 1,
+          totalMs: 1,
+        };
+      },
+    },
+    {
+      modelId: "test",
+      question: "示例流程",
+      pages: retrieve(bundleSchema.parse(sampleBundle()), "示例流程"),
+      style: "business",
+      depth: "beginner",
+    },
+    new AbortController().signal,
+  );
+  assert.equal(answer.text, "第一行\n第二行");
+  assert.ok(!answer.text.includes('{"text"'));
+  assert.deepEqual(answer.citations, ["guide"]);
+  assert.equal(
+    (metrics as { protocolFallback?: boolean }).protocolFallback,
+    true,
+  );
+});
+
 test("published domain labels and each style/depth template reach the model", async () => {
   const config = {
     domainLabel: "设备支持",
