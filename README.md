@@ -18,9 +18,10 @@ WIKIBOT_DEMO=1 npm run dev
 
 | 文档 | 用途 |
 |---|---|
-| [完整设计 v0.4](docs/handoff/domain-knowledge-bot-design-v0.4.md) | 当前范围、架构、角色、知识发布、问答、工单、API、恢复、部署和验收 |
+| [增量完整设计 v0.5](docs/handoff/domain-knowledge-bot-design-v0.5.md) | 基于最新代码的 Docling、Claim/Evidence、双时间、Conflict、sidecar、Code Wiki 和 DeepEval 设计 |
+| [v0.5 技术决策](docs/adr/0005-document-claims-and-evaluation.md) | 复用边界、兼容迁移和依赖部署方式 |
 | [开发交接](docs/handoff/development-handoff.md) | 开工顺序、先决条件、交付物与完成标准 |
-| [成本估算](docs/handoff/domain-knowledge-bot-cost-estimate-v0.3.md) | 人日、排期、预算假设与持续运行成本 |
+| [历史成本估算](docs/handoff/domain-knowledge-bot-cost-estimate-v0.3.md) | 早期从零方案的预算假设，不代表当前剩余投入 |
 | [独立设计审查](reviews/wikiBot-design-review-2026-09-25/REVIEW.md) | F1–F5 的原始问题、反例和验证要求 |
 | [v0.4 设计访谈](reviews/wikiBot-v0.4-grill-2026-09-26/REVIEW.md) | 两轮已确认的设计取舍、收口后的设计树和待验证事项 |
 | [领域语言](CONTEXT.md) | 领域、权限、表达标签、知识支持范围与工单术语 |
@@ -39,17 +40,18 @@ WIKIBOT_DEMO=1 npm run dev
 
 ## 开发入口
 
-先进行公司模型、企微身份/交付和 llm_wiki 来源往返的真实验证，再实现一个流程的完整链路。设计中的并发锁、版本描述、恢复及权限契约需要实现并验证，不能把文档补充标为已经通过。
+2026-10-07 以 `cbc4742` 为代码基线重新设计。保留现有检索优先、SQLite、Pi、网页/企微与权限工单，按 v0.5 的 M0–M5 接入文档标准化、轻量 Claim、证据 sidecar、增量 Code Wiki 与质量门禁。新增能力目前仅有设计，尚未安装依赖或实现。
 
-工程预算量级：单领域受控试点 50–75 人日；完整范围 85–125 人日，均含约 20% 储备。详见成本估算，实际排期在兼容性验证后更新。
+旧成本估算对应只有文档时的从零开发范围；本次基于现有代码计算增量，在四种格式样本和最小 Claim 链路验证后更新排期。
 
 ## 历史材料
 
+- [v0.4 设计及后续修订](docs/handoff/domain-knowledge-bot-design-v0.4.md)
 - [v0.3 人群、权限与问题登记修订](docs/handoff/domain-knowledge-bot-design-v0.3.md)
 - [v0.2 设计](docs/handoff/domain-knowledge-bot-design-v0.2.md)
 - [v0.2 聚焦复查](docs/handoff/domain-knowledge-bot-review-v0.2.md)
 - [历史 HTML](docs/handoff/domain-knowledge-bot-design.html)
 
-历史材料出现不同规则时，以 ADR-0004 及已同步的完整设计 v0.4/实施规格为准；历史复查结论不能代替本版本的实现与验收。
+当前实现事实以代码为准；新增目标以 v0.5 与 ADR-0005 为准。ADR-0002/0003/0004 继续有效，历史记录不自动代表新能力已经实现或验收。
 
 管理员权限、用户表达标签和 Wiki 来源目录均按领域受控配置；business/technical 可以并存，兼有默认技术视角，显式偏好优先。默认15秒答案期限是运行终止边界，原3秒首段/10秒整答联合 SLO 仍待真实验收。本轮加入受控来源更正、隔离附件、恢复与渠道崩溃对账、多 bot 配置及[第二领域合成示例](examples/second-domain/README.md)。最终验证和逐票剩余项见[集成验收](.scratch/wikibot-v0.4/evidence/parallel-integration-acceptance.md)，不据此宣称试点或完整 v0.4 验收通过。
