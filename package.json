@@ -1,6 +1,6 @@
 {
   "name": "wikibot",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -10,7 +10,7 @@
     "dev": "tsx --env-file-if-exists=.env src/server.ts",
     "build": "tsc && node tools/build-assets.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test test/*.test.ts",
+    "test": "tsx --test --test-concurrency=2 test/*.test.ts",
     "start": "node --env-file-if-exists=.env dist/src/server.js",
     "probe": "tsx tools/probe.ts",
     "demo": "tsx tools/demo.ts",
@@ -18,7 +18,10 @@
     "manifest": "tsx tools/manifest.ts",
     "backup": "tsx tools/backup.ts",
     "acceptance:report": "tsx tools/acceptance-report.ts",
-    "source:helper": "tsx tools/source-helper.ts"
+    "source:helper": "tsx tools/source-helper.ts",
+    "contracts:generate": "tsx tools/knowledge-contracts.ts",
+    "knowledge:backup": "tsx tools/knowledge-backup.ts",
+    "test:e2e:v05": "tsx tools/v05-e2e.ts"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "0.87.1",

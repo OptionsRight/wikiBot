@@ -12,7 +12,14 @@ import {
   type Identity,
 } from "./core.js";
 import { body, path, key } from "./app.js";
-import { bundleSchema, validateBundle, type Bundle } from "./procedures.js";
+import {
+  bundleSchema,
+  validateBundle,
+  isV2,
+  type Bundle,
+} from "./procedures.js";
+import { AssetStore } from "./knowledge/assets.js";
+import { requireGroundingRelease } from "./knowledge/sidecars.js";
 import { invalidateCandidates, stopAnswer } from "./governance.js";
 import type { Answer } from "./answers.js";
 import { requireEvaluation } from "./evaluations.js";
@@ -22,6 +29,7 @@ import {
 } from "./source-maintenance.js";
 
 export interface Release extends Entity {
+  publishedAt?: number;
   bundle: Bundle;
   descriptorHash: string;
   bundleHash: string;
@@ -43,6 +51,23 @@ export interface Release extends Entity {
     draftVersion: number;
     caseIds: string[];
   };
+}
+export function freezeReleaseClaims(store: Store, release: Release) {
+  const { bundle, domain } = release;
+  if (isV2(bundle))
+    for (const claim of bundle.groundingManifest.claims)
+      store.knowledgePut("release_claims", {
+        id: hash([release.id, claim.versionId]),
+        domain,
+        version: 1,
+        releaseId: release.id,
+        claimVersionId: claim.versionId,
+        snapshot: claim,
+        evidence: bundle.groundingManifest.evidence.filter((e) =>
+          claim.evidenceIds.includes(e.evidenceId),
+        ),
+        snapshotHash: hash(claim),
+      });
 }
 export interface ModelState extends Entity {
   model: string;
@@ -103,7 +128,35 @@ export function allowedRelease(
     "RELEASE_REVOKED",
   );
 }
-export function registerPublication(app: FastifyInstance, store: Store) {
+export function registerPublication(
+  app: FastifyInstance,
+  store: Store,
+  assetRoot?: string,
+) {
+  const assets = assetRoot ? new AssetStore(assetRoot) : undefined;
+  for (const kind of ["claims", "evidence"] as const)
+    app.get(
+      `/api/domains/:domain/releases/:id/${kind}/:itemId`,
+      async (request) => {
+        const domain = path(request, "domain");
+        access(store, request.actor, domain);
+        const r = store.get<Release>("release", path(request, "id"));
+        requireThat(r?.domain === domain, 404, "NOT_FOUND");
+        allowedRelease(store, request.actor, r);
+        requireThat(isV2(r.bundle), 404, "NOT_FOUND");
+        const itemId = path(request, "itemId");
+        const item =
+          kind === "claims"
+            ? r.bundle.groundingManifest.claims.find(
+                (c) => c.claimId === itemId || c.versionId === itemId,
+              )
+            : r.bundle.groundingManifest.evidence.find(
+                (e) => e.evidenceId === itemId && e.visibility === "excerpt",
+              );
+        requireThat(item, 404, "NOT_FOUND");
+        return item;
+      },
+    );
   app.get(
     "/api/domains/:domain/releases/:id/pages/:pageId",
     async (request) => {
@@ -135,10 +188,12 @@ export function registerPublication(app: FastifyInstance, store: Store) {
       },
       () => {
         validateBundle(bundle);
+        if (isV2(bundle))
+          requireGroundingRelease(store, assets, domain, bundle);
         validateSourceSubmission(store, domain, bundle);
         const d = store.get<Domain>("domain", domain)!;
         requireThat(!d.maintenance, 503, "RECOVERY_VERIFICATION_REQUIRED");
-        return store.put<Release>("release", {
+        const release = store.put<Release>("release", {
           id: id(),
           domain,
           version: 1,
@@ -154,6 +209,8 @@ export function registerPublication(app: FastifyInstance, store: Store) {
             bundle.config.modelRevision,
           ).epoch,
         });
+        freezeReleaseClaims(store, release);
+        return release;
       },
     );
     return reply.code(201).send(result);
@@ -210,7 +267,11 @@ export function registerPublication(app: FastifyInstance, store: Store) {
           503,
           "MODEL_REVALIDATION_REQUIRED",
         );
-        if (input.approved) requireEvaluation(store, r);
+        if (input.approved) {
+          if (isV2(r.bundle))
+            requireGroundingRelease(store, assets, domain, r.bundle);
+          requireEvaluation(store, r);
+        }
         return store.put<Release>("release", {
           ...r,
           state: input.approved ? "ready" : "rejected",
@@ -262,6 +323,9 @@ export function registerPublication(app: FastifyInstance, store: Store) {
           "BASELINE_STALE",
         );
         access(store, { subject: r.reviewer!, platform: false }, domain, true);
+        if (isV2(r.bundle))
+          requireGroundingRelease(store, assets, domain, r.bundle);
+        requireEvaluation(store, r);
         const m = modelState(
           store,
           r.bundle.config.model,
@@ -296,6 +360,7 @@ export function registerPublication(app: FastifyInstance, store: Store) {
         return store.put<Release>("release", {
           ...r,
           state: "active",
+          publishedAt: Date.now(),
           version: r.version + 1,
         });
       },
@@ -415,7 +480,7 @@ export function registerPublication(app: FastifyInstance, store: Store) {
             r.bundle.config.modelRevision,
           );
           requireThat(m.qualified, 503, "MODEL_REVALIDATION_REQUIRED");
-          return store.put<Release>("release", {
+          const candidate = store.put<Release>("release", {
             id: id(),
             domain,
             version: 1,
@@ -427,6 +492,8 @@ export function registerPublication(app: FastifyInstance, store: Store) {
             baseActive: d.active,
             modelEpoch: m.epoch,
           });
+          freezeReleaseClaims(store, candidate);
+          return candidate;
         },
       );
       return reply.code(201).send(result);

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "doclingVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "pipeline": {
+      "type": "string",
+      "enum": [
+        "native",
+        "standard"
+      ]
+    },
+    "ocr": {
+      "type": "boolean"
+    },
+    "modelArtifactsHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "maxBytes": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 104857600
+    },
+    "maxExpandedBytes": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 536870912
+    },
+    "maxPages": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 2000
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 3600000
+    },
+    "memoryMb": {
+      "type": "integer",
+      "minimum": 256,
+      "maximum": 32768
+    },
+    "cpuSeconds": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 3600
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "doclingVersion",
+    "pipeline",
+    "ocr",
+    "modelArtifactsHash",
+    "maxBytes",
+    "maxExpandedBytes",
+    "maxPages",
+    "timeoutMs",
+    "memoryMb",
+    "cpuSeconds"
+  ],
+  "additionalProperties": false
+}

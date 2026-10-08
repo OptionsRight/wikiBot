@@ -18,6 +18,7 @@ import {
 } from "./source-files.js";
 import type { Page } from "./procedures.js";
 import { createPageManifest, type PageManifest } from "./source-formats.js";
+import { syncDirectory } from "./durable-files.js";
 
 export interface CorrectionPlan {
   id: string;
@@ -145,12 +146,7 @@ export class ControlledSource {
       await history.close();
     }
     await rename(temp, target);
-    const dir = await open(this.records, "r");
-    try {
-      await dir.sync();
-    } finally {
-      await dir.close();
-    }
+    await syncDirectory(this.records);
   }
   private async load(rid: string): Promise<CorrectionJournal | undefined> {
     try {

@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "jobId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+    },
+    "actorRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "inputManifestHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "deadline": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "outputRootRef": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+\\/[a-zA-Z0-9_-]+$"
+    },
+    "attempt": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "fencingToken": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+    },
+    "sourceVersionId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+    },
+    "rawSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "profileHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "const": 1
+        },
+        "doclingVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "pipeline": {
+          "type": "string",
+          "enum": [
+            "native",
+            "standard"
+          ]
+        },
+        "ocr": {
+          "type": "boolean"
+        },
+        "modelArtifactsHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "maxBytes": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 104857600
+        },
+        "maxExpandedBytes": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 536870912
+        },
+        "maxPages": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 2000
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000
+        },
+        "memoryMb": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 32768
+        },
+        "cpuSeconds": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "doclingVersion",
+        "pipeline",
+        "ocr",
+        "modelArtifactsHash",
+        "maxBytes",
+        "maxExpandedBytes",
+        "maxPages",
+        "timeoutMs",
+        "memoryMb",
+        "cpuSeconds"
+      ],
+      "additionalProperties": false
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "docx",
+        "pptx",
+        "xlsx"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "domain",
+    "actorRef",
+    "inputManifestHash",
+    "deadline",
+    "outputRootRef",
+    "attempt",
+    "fencingToken",
+    "sourceVersionId",
+    "rawSha256",
+    "profileHash",
+    "profile",
+    "format"
+  ],
+  "additionalProperties": false
+}

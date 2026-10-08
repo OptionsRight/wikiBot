@@ -1,5 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
+import {
+  databaseVersion,
+  migrateKnowledge,
+  knowledgeTables,
+  type KnowledgeTable,
+} from "./knowledge/migrations.js";
 
 export class Fault extends Error {
   constructor(
@@ -60,7 +66,8 @@ export interface SourceRepos extends Entity {
   codeRepository: string;
 }
 export interface PasswordCredential extends Entity {
-  password: string;
+  password?: string;
+  passwordHash?: string;
 }
 interface CommandReceipt extends Entity {
   outcomes: { operation: string; objectId?: string }[];
@@ -73,11 +80,11 @@ export class Store {
   private db: DatabaseSync;
   constructor(path: string) {
     this.db = new DatabaseSync(path);
-    requireThat(
-      Number(this.db.prepare("PRAGMA user_version").get()?.user_version) <= 3,
-      503,
-      "DATABASE_VERSION_UNSUPPORTED",
-    );
+    const supported =
+      Number(this.db.prepare("PRAGMA user_version").get()?.user_version) <=
+      databaseVersion;
+    if (!supported) this.db.close();
+    requireThat(supported, 503, "DATABASE_VERSION_UNSUPPORTED");
     this.db
       .exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS objects(kind TEXT NOT NULL,id TEXT NOT NULL,domain TEXT NOT NULL,version INTEGER NOT NULL,data TEXT NOT NULL,PRIMARY KEY(kind,id));
@@ -97,10 +104,43 @@ export class Store {
       this.db.exec(
         "ALTER TABLE tokens ADD COLUMN kind TEXT NOT NULL DEFAULT 'api'",
       );
-    this.db.exec("PRAGMA user_version=3");
+    if (Number(this.db.prepare("PRAGMA user_version").get()?.user_version) < 3)
+      this.db.exec("PRAGMA user_version=3");
+    migrateKnowledge(this.db);
   }
   close() {
     this.db.close();
+  }
+  // Dedicated knowledge tables share command()/tx() with existing business data.
+  knowledgeGet<T extends Entity>(
+    table: KnowledgeTable,
+    key: string,
+  ): T | undefined {
+    requireThat(knowledgeTables.includes(table), 500, "INVALID_TABLE");
+    const row = this.db
+      .prepare(`SELECT data FROM ${table} WHERE id=?`)
+      .get(key);
+    return row ? (JSON.parse(row.data as string) as T) : undefined;
+  }
+  knowledgeList<T extends Entity>(table: KnowledgeTable, domain?: string): T[] {
+    requireThat(knowledgeTables.includes(table), 500, "INVALID_TABLE");
+    const rows =
+      domain === undefined
+        ? this.db.prepare(`SELECT data FROM ${table}`).all()
+        : this.db
+            .prepare(`SELECT data FROM ${table} WHERE domain=?`)
+            .all(domain);
+    return rows.map((row) => JSON.parse(row.data as string) as T);
+  }
+  knowledgePut<T extends Entity>(table: KnowledgeTable, value: T): T {
+    requireThat(knowledgeTables.includes(table), 500, "INVALID_TABLE");
+    const written = this.db
+      .prepare(
+        `INSERT INTO ${table}(id,domain,version,data) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET version=excluded.version,data=excluded.data WHERE domain=excluded.domain`,
+      )
+      .run(value.id, value.domain, value.version, JSON.stringify(value));
+    requireThat(written.changes === 1, 409, "KNOWLEDGE_DOMAIN_CONFLICT");
+    return structuredClone(value);
   }
   tx<T>(fn: () => T): T {
     this.db.exec("BEGIN IMMEDIATE");

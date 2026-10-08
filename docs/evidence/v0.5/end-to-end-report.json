@@ -1,0 +1,212 @@
+{
+  "scope": "real Docling and DeepEval; synthetic company judge and business facts; controlled WeCom transport only, no real WeCom delivery",
+  "versions": {
+    "node": "24.19.0",
+    "python": "3.12.10",
+    "docling": "2.135.0",
+    "deepeval": "4.2.8"
+  },
+  "judgeIsSynthetic": true,
+  "realCompanyAcceptance": false,
+  "realWecomAcceptance": false,
+  "v1": "c7686b4f-15cf-470f-a70a-4e90543fe182",
+  "v2": "41e76f57-54c9-475e-bded-121e11d10089",
+  "rollback": "0c3e6cac-0745-426b-9907-7cd26f261516",
+  "judgeCalls": 9,
+  "semanticReport": {
+    "id": "4c74f530-1f2f-4f47-86d8-512c2ddc2035",
+    "domain": "ads",
+    "version": 2,
+    "releaseId": "41e76f57-54c9-475e-bded-121e11d10089",
+    "binding": {
+      "releaseId": "41e76f57-54c9-475e-bded-121e11d10089",
+      "descriptorHash": "9eeb3b5e689b515e98054706eb916f583a3dd9c03aad398f11f06f80f55f6df0",
+      "modelEpoch": 0,
+      "judgeEpoch": 0,
+      "suiteHash": "cc2baa097b69b9cb1c403c447501ea7a631eeac06d81a77be8c992738ab2a052",
+      "evalPolicyHash": "e5ca98ef8689f483d0951a53d3e69bfd6e1984b7ef3d5bd2b30b30bca95f5b9a",
+      "judgeProfileHash": "d7bf1e3f7ce1bbad9ac4a885a8574cbdd5986e79f812ba2be045d5beb961e82c",
+      "caseIds": [
+        "travel"
+      ],
+      "inputHash": "cafa0928baefe62be122e0bf5425eda65ca8f07bfe8dfe73d4dfbededc9dac08",
+      "jobId": "4c74f530-1f2f-4f47-86d8-512c2ddc2035",
+      "attempt": 1,
+      "fencingToken": "2add913f-e542-47b4-a193-256865608390",
+      "deadline": 1791393610720
+    },
+    "judge": {
+      "model": "test-model",
+      "revision": "r1",
+      "promptVersion": "1",
+      "temperature": 0,
+      "deepevalVersion": "4.2.8"
+    },
+    "actor": "admin",
+    "state": "complete",
+    "pass": true,
+    "createdAt": 1791393490720,
+    "inputHashes": {
+      "travel": "893e8e89a11c0b3a17bdf86d8f3606fbdef2fb5f18c19943bafa452956445746"
+    },
+    "finishedAt": 1791393492789,
+    "report": {
+      "type": "report",
+      "binding": {
+        "releaseId": "41e76f57-54c9-475e-bded-121e11d10089",
+        "descriptorHash": "9eeb3b5e689b515e98054706eb916f583a3dd9c03aad398f11f06f80f55f6df0",
+        "modelEpoch": 0,
+        "judgeEpoch": 0,
+        "suiteHash": "cc2baa097b69b9cb1c403c447501ea7a631eeac06d81a77be8c992738ab2a052",
+        "evalPolicyHash": "e5ca98ef8689f483d0951a53d3e69bfd6e1984b7ef3d5bd2b30b30bca95f5b9a",
+        "judgeProfileHash": "d7bf1e3f7ce1bbad9ac4a885a8574cbdd5986e79f812ba2be045d5beb961e82c",
+        "caseIds": [
+          "travel"
+        ],
+        "inputHash": "cafa0928baefe62be122e0bf5425eda65ca8f07bfe8dfe73d4dfbededc9dac08",
+        "jobId": "4c74f530-1f2f-4f47-86d8-512c2ddc2035",
+        "attempt": 1,
+        "fencingToken": "2add913f-e542-47b4-a193-256865608390",
+        "deadline": 1791393610720
+      },
+      "cases": [
+        {
+          "caseId": "travel",
+          "inputHash": "893e8e89a11c0b3a17bdf86d8f3606fbdef2fb5f18c19943bafa452956445746",
+          "metrics": [
+            {
+              "name": "faithfulness",
+              "scoreBps": 10000,
+              "reason": "Synthetic judge fixture: supported by the supplied 80 USD policy.",
+              "state": "complete"
+            },
+            {
+              "name": "relevancy",
+              "scoreBps": 10000,
+              "reason": "Synthetic judge fixture: supported by the supplied 80 USD policy.",
+              "state": "complete"
+            },
+            {
+              "name": "coverage",
+              "scoreBps": 10000,
+              "reason": "Synthetic judge fixture: supported by the supplied 80 USD policy.",
+              "state": "complete"
+            },
+            {
+              "name": "forbidden",
+              "scoreBps": 10000,
+              "reason": "Synthetic judge fixture: supported by the supplied 80 USD policy.",
+              "state": "complete"
+            }
+          ]
+        }
+      ],
+      "runtime": {
+        "deepeval": "4.2.8",
+        "python": "3.12.10"
+      }
+    },
+    "usage": {
+      "calls": 9,
+      "inputTokens": 9,
+      "outputTokens": 9
+    }
+  },
+  "answer": {
+    "id": "3b3b91f8-8749-4671-987d-bc2888532b4f",
+    "domain": "ads",
+    "version": 6,
+    "owner": "alice",
+    "question": "What is the travel reimbursement limit?",
+    "releaseId": "41e76f57-54c9-475e-bded-121e11d10089",
+    "descriptorHash": "9eeb3b5e689b515e98054706eb916f583a3dd9c03aad398f11f06f80f55f6df0",
+    "session": "v05-e2e",
+    "style": "business",
+    "depth": "beginner",
+    "state": "complete",
+    "code": "ANSWER",
+    "blocks": [
+      {
+        "sequence": 1,
+        "type": "explanation",
+        "text": "Travel reimbursement limit is 80 USD per day.",
+        "citations": [
+          "travel"
+        ],
+        "claimVersionIds": [
+          "34ae93fa-c19d-40d3-8cd7-c6d51c5f83ad"
+        ],
+        "evidenceIds": [
+          "c13540eda9a71080cfde8c25b324d6a87a5a36193017b70694e09c5099a4b976"
+        ]
+      }
+    ],
+    "createdAt": 1791393492854,
+    "deadline": 1791393507854,
+    "modelEpoch": 0,
+    "review": "clear",
+    "exposedThrough": 1,
+    "deliveredThrough": 0,
+    "firstValidatedAt": 1791393492863,
+    "evidenceContext": {
+      "mode": "claims",
+      "claims": [
+        {
+          "claimId": "50511822-233f-4ce3-a770-a7d5dc1c76a6",
+          "versionId": "34ae93fa-c19d-40d3-8cd7-c6d51c5f83ad",
+          "domain": "ads",
+          "subjectId": "travel",
+          "predicate": "daily_limit",
+          "qualifiers": {
+            "currency": "USD"
+          },
+          "statement": "Travel reimbursement limit is 80 USD per day.",
+          "typedValue": 80,
+          "validityKind": "known",
+          "validFrom": 0,
+          "validTo": null,
+          "recordedFrom": 1791393490640,
+          "recordedTo": null,
+          "status": "approved",
+          "supersedesVersionId": null,
+          "extractionProfileHash": "0c90a17e3517c16ec375c5a68974cea656fa5019c52127200e5bb6387731a70c",
+          "evidenceIds": [
+            "c13540eda9a71080cfde8c25b324d6a87a5a36193017b70694e09c5099a4b976"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "evidenceId": "c13540eda9a71080cfde8c25b324d6a87a5a36193017b70694e09c5099a4b976",
+          "domain": "ads",
+          "sourceVersionId": "117edf29-4c7e-4089-9428-e4b49070fcbb",
+          "resolverKind": "document",
+          "locator": {
+            "precision": "block",
+            "pointer": "da382c81-6944-4ae3-bdc4-6d4675c635ef/128d3317af10fd739cb83a043124465c6a7b9b46da25bd3227af0ac0cb5f00f1"
+          },
+          "rawSha256": "f1574500bc94ebdaa4ced91ad652b3dd8057638493f817df8b09da9335106230",
+          "contentHash": "84d893068f2a721eee5104c64a005321af5bfd6462a1a613c62f5db51206c06e",
+          "excerpt": "Travel reimbursement limit is 80 USD per day.",
+          "visibility": "excerpt",
+          "state": "fresh"
+        }
+      ],
+      "pages": [
+        {
+          "pageId": "travel",
+          "claimVersionIds": [
+            "34ae93fa-c19d-40d3-8cd7-c6d51c5f83ad"
+          ],
+          "evidenceIds": [
+            "c13540eda9a71080cfde8c25b324d6a87a5a36193017b70694e09c5099a4b976"
+          ]
+        }
+      ]
+    },
+    "generationCompletedAt": 1791393492865,
+    "finishedAt": 1791393492868
+  },
+  "controlledChannelPersistenceBeforeDelivery": true,
+  "controlledChannelInvalidCitationBlocked": true
+}

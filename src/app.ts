@@ -30,8 +30,17 @@ import { registerChannel, type WecomOptions } from "./channel.js";
 import { registerAnswerStyle } from "./answer-style-routes.js";
 import { cookieValue, registerAuth, type SsoOptions } from "./auth.js";
 import { readFile } from "node:fs/promises";
+import { registerKnowledge } from "./knowledge/routes.js";
+import type { KnowledgeOptions } from "./knowledge/jobs.js";
+import {
+  registerSemanticEvaluations,
+  type SemanticOptions,
+} from "./knowledge/semantic-evaluation.js";
+import { hashPassword, verifyPassword } from "./passwords.js";
 
 export interface AppOptions {
+  semanticEvaluation?: SemanticOptions;
+  knowledge?: KnowledgeOptions;
   database: string;
   bootstrap?: { token: string; subject: string };
   model?: ModelGateway;
@@ -221,15 +230,65 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       const file = decodeURIComponent(
         String((request.params as Record<string, string>)["*"] ?? ""),
       );
-      requireThat(/^(?!\.\.(?:\/|$))[\w./-]+\.m?js$/.test(file), 404, "NOT_FOUND");
+      requireThat(
+        /^(?!\.\.(?:\/|$))[\w./-]+\.m?js$/.test(file),
+        404,
+        "NOT_FOUND",
+      );
       reply
         .type("text/javascript")
-        .send(await readFile(new URL(`../web/${dir}/${file}`, import.meta.url)));
+        .send(
+          await readFile(new URL(`../web/${dir}/${file}`, import.meta.url)),
+        );
     });
   registerAuth(app, store, options.publicOrigin, options.sso, options.identity);
-  // 本地用户名密码登录：仅在未配置外部身份源时开放（此时服务也只能绑定回环地址）。
-  // 密码默认 DEFAULT_PASSWORD，为某账号写入 credential 后以该账号自己的密码为准。
-  const DEFAULT_PASSWORD = "1213456";
+  // Migrate explicitly provisioned plaintext credentials; no shared fallback.
+  for (const credential of store.list<PasswordCredential>("credential"))
+    if (credential.password) {
+      const { password, ...rest } = credential;
+      store.put("credential", {
+        ...rest,
+        passwordHash: await hashPassword(password),
+        version: credential.version + 1,
+      });
+    }
+  app.put("/api/identities/:subject/password", async (request) => {
+    platform(request.actor);
+    const subject = path(request, "subject"),
+      input = body(
+        z
+          .object({
+            password: z.string().min(12).max(200),
+            expectedVersion: z.number().int().nonnegative(),
+          })
+          .strict(),
+        request,
+      );
+    const passwordHash = await hashPassword(input.password);
+    return store.command(
+      request.actor,
+      "",
+      `password:set:${subject}`,
+      key(request),
+      input,
+      () => platform(request.actor),
+      () => {
+        const old = store.get<PasswordCredential>("credential", subject);
+        requireThat(
+          (old?.version ?? 0) === input.expectedVersion,
+          409,
+          "VERSION_CONFLICT",
+        );
+        store.put<PasswordCredential>("credential", {
+          id: subject,
+          domain: "",
+          version: input.expectedVersion + 1,
+          passwordHash,
+        });
+        return { subject, version: input.expectedVersion + 1 };
+      },
+    );
+  });
   app.post("/auth/password", async (request, reply) => {
     const input = body(
       z
@@ -241,16 +300,38 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
       request,
     );
     requireThat(!options.identity, 403, "EXTERNAL_IDENTITY_REQUIRED");
+    const throttleId = `${request.ip}:${input.subject}`;
+    const throttle = store.get<{
+      id: string;
+      domain: string;
+      version: number;
+      count: number;
+      resetAt: number;
+    }>("login-throttle", throttleId);
+    const count =
+      throttle && throttle.resetAt > Date.now() ? throttle.count : 0;
+    requireThat(count < 5, 429, "LOGIN_RATE_LIMITED");
+    store.put("login-throttle", {
+      id: throttleId,
+      domain: "",
+      version: (throttle?.version ?? 0) + 1,
+      count: count + 1,
+      resetAt: count ? throttle!.resetAt : Date.now() + 15 * 60000,
+    });
     const known =
       input.subject === options.bootstrap?.subject ||
       store.list<Grant>("grant").some((g) => g.subject === input.subject);
-    requireThat(known, 401, "UNKNOWN_SUBJECT");
-    const credential = store.get<PasswordCredential>("credential", input.subject);
+    requireThat(known, 401, "INVALID_CREDENTIALS");
+    const credential = store.get<PasswordCredential>(
+      "credential",
+      input.subject,
+    );
     requireThat(
-      input.password === (credential?.password ?? DEFAULT_PASSWORD),
+      await verifyPassword(input.password, credential?.passwordHash),
       401,
       "INVALID_CREDENTIALS",
     );
+    store.remove("login-throttle", throttleId);
     const token = randomBytes(32).toString("base64url");
     store.token(token, {
       subject: input.subject,
@@ -427,7 +508,14 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     access(store, request.actor, path(request, "domain"), true);
     return store.auditLog(path(request, "domain"));
   });
-  registerPublication(app, store);
+  registerPublication(app, store, options.knowledge?.assetRoot);
+  registerKnowledge(app, store, options.knowledge);
+  registerSemanticEvaluations(
+    app,
+    store,
+    options.model,
+    options.semanticEvaluation,
+  );
   registerAnswerStyle(app, store);
   registerGovernance(app, store);
   registerEvaluations(app, store, options.model);
@@ -440,6 +528,7 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     store,
     options.recoveryAuthority,
     options.operationalRetention,
+    options.knowledge?.assetRoot,
   );
   for (const channel of channels)
     registerChannel(

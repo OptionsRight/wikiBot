@@ -1,0 +1,20 @@
+{
+  "algorithm": "sha256-utf8-ascii-key-canonical-json-integers-v1",
+  "value": {
+    "z": [
+      "中文😀\n\t\\\"",
+      null,
+      true,
+      false,
+      -9007199254740991
+    ],
+    "A": 0,
+    "a": {
+      "z": 1,
+      "A": 2,
+      "_": 3
+    }
+  },
+  "canonical": "{\"A\":0,\"a\":{\"A\":2,\"_\":3,\"z\":1},\"z\":[\"中文😀\\n\\t\\\\\\\"\",null,true,false,-9007199254740991]}",
+  "sha256": "6255369516b6c333d1812e9e68acfc1dcde576b822d53680e908da962c80aa91"
+}

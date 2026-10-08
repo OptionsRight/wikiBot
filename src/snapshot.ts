@@ -2,6 +2,8 @@ import { realpath } from "node:fs/promises";
 import { z } from "zod";
 import {
   bundleSchema,
+  bundleV1Schema,
+  bundleV2Schema,
   validateBundle,
   identifier,
   type Bundle,
@@ -22,7 +24,7 @@ import {
 
 // A snapshot input declares pages without content; the content is read from
 // the workspace and must match the declared hash at capture time.
-const manifestSchema = z
+const manifestV1Schema = z
   .object({
     pages: z
       .array(
@@ -41,10 +43,17 @@ const manifestSchema = z
       .array(sourceArtifactSchema.omit({ content: true }))
       .max(100)
       .optional(),
-    cases: bundleSchema.shape.cases,
-    config: bundleSchema.shape.config,
+    cases: bundleV1Schema.shape.cases,
+    config: bundleV1Schema.shape.config,
   })
   .strict();
+const manifestSchema = z.union([
+  manifestV1Schema,
+  bundleV2Schema.extend({
+    pages: manifestV1Schema.shape.pages,
+    sourceArtifacts: manifestV1Schema.shape.sourceArtifacts,
+  }),
+]);
 
 export async function snapshot(
   root: string,
@@ -109,6 +118,7 @@ export async function snapshot(
     (sourceArtifacts ?? []).map((a) => a.path),
   );
   const result = {
+    ...input,
     pages,
     cases: input.cases,
     config: input.config,

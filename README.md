@@ -4,7 +4,9 @@
 
 ## 当前状态
 
-仓库已有可运行的 TypeScript 单机集成实现：网页与企微自由文本问答（服务端检索已发布页面 + 单次模型生成，引用经白名单校验）、知识发布、工单及状态通知、修订草稿、模型门禁和恢复隔离。2026-09-26 按 [ADR-0004](docs/adr/0004-retrieval-first-answers.md) 从结构化清单查表改为检索优先，并完成真实 Wiki（161 页）首次发布与真实模型问答。具体范围见[实施证据](.scratch/wikibot-v0.4/evidence/implementation.md)，本轮见[检索改造与真实首跑记录](.scratch/wikibot-v0.4/evidence/retrieval-pivot.md)。
+v0.5 已增加真实 Docling 文档标准化、Claim/Evidence 双时间与冲突复核、V2 sidecar 与增量 Code Wiki、真实 DeepEval 影子/校准门禁和版本内正式回答块。保留 V1 包及旧哈希、现有工单、权限、Pi ModelGateway 和企微交付。
+
+先看 [v0.5 运行与迁移](docs/operations-v0.5.md) 和 [实施与验证记录](docs/handoff/v0.5-implementation.md)。合成端到端真实运行 Docling/DeepEval；公司模型 judge、业务专家校准、真实企微和负载是独立验收条件，不能由合成结果代替。
 
 ```sh
 npm ci
@@ -12,7 +14,7 @@ npm run demo
 WIKIBOT_DEMO=1 npm run dev
 ```
 
-访问 `http://127.0.0.1:3000`，使用 `.local/demo-access.json` 中的演示令牌。演示仅含合成知识和固定模型。配置、发布、企微及恢复步骤见[运行手册](docs/operations.md)。
+访问 `http://127.0.0.1:3000`，使用用户名 `demo-admin` / `demo-member` 和 `.local/demo-access.json` 中 `passwords.admin` / `passwords.member` 的随机密码（同文件令牌供 API 使用）。演示仅含合成知识和固定模型。配置、发布、企微及恢复步骤见[运行手册](docs/operations.md)。
 
 ## 阅读入口
 

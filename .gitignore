@@ -10,3 +10,6 @@ coverage/
 *.sqlite-wal
 *.log
 .DS_Store
+__pycache__/
+*.pyc
+.venv/

@@ -20,14 +20,22 @@ import {
 import { retrieve } from "./retrieval.js";
 import type { ModelGateway } from "./adapters/model.js";
 import { generateAnswer } from "./explanation.js";
+import { evidenceContext, type EvidenceContext } from "./knowledge/context.js";
 
 export interface Block {
+  claimVersionIds?: string[];
+  evidenceIds?: string[];
   sequence: number;
   type: "explanation" | "status";
   text: string;
   citations: string[];
 }
 export interface Answer extends Entity {
+  preview?: { text: string; at: number };
+  generationCompletedAt?: number;
+  firstValidatedAt?: number;
+  deliveryCompletedAt?: number;
+  evidenceContext?: EvidenceContext;
   owner: string;
   question: string;
   releaseId: string;
@@ -209,6 +217,7 @@ export class AnswerService {
       callStarted: undefined,
       modelMetrics: undefined,
       history: undefined,
+      preview: answer.review === "clear" ? answer.preview : undefined,
       blocks: visible,
       reviewReason:
         answer.review === "pending" ? "模型验证待确认" : answer.reviewReason,
@@ -354,6 +363,8 @@ export class AnswerService {
           release.bundle,
           [a.question, ...history.map((h) => h.question)].join("\n"),
         );
+      const context = evidenceContext(release.bundle, pages);
+      pages = context.pages;
       if (!pages.length) {
         this.commit(a.id, token!, (answer) => ({
           ...answer,
@@ -401,6 +412,7 @@ export class AnswerService {
               pages,
               style: a.style,
               depth: a.depth,
+              grounding: context.grounding,
               ...(history.length ? { history } : {}),
             },
             controller.signal,
@@ -412,35 +424,51 @@ export class AnswerService {
                 this.commit(a.id, token!, (answer) => ({
                   ...answer,
                   code: "ANSWER",
-                  blocks: [
-                    {
-                      sequence: 1,
-                      type: "explanation",
-                      text: textSoFar,
-                      citations: [],
-                    },
-                  ],
+                  preview: { text: textSoFar, at: Date.now() },
                 }));
               } catch {
                 // Lease/deadline lost mid-stream: stop generating.
                 controller.abort();
               }
             },
+            (block) => {
+              this.commit(a.id, token!, (answer) => ({
+                ...answer,
+                firstValidatedAt: answer.firstValidatedAt ?? Date.now(),
+                blocks: [
+                  ...answer.blocks,
+                  {
+                    sequence: block.seq,
+                    type: block.outcome === "answer" ? "explanation" : "status",
+                    text: block.text,
+                    citations: block.pageIds,
+                    claimVersionIds: block.claimVersionIds,
+                    evidenceIds: block.evidenceIds,
+                  },
+                ],
+                evidenceContext: context.grounding,
+              }));
+            },
           );
           this.commit(a.id, token!, (answer) => ({
             ...answer,
-            blocks: [
-              {
-                sequence: 1,
-                type:
-                  generated.outcome && generated.outcome !== "answer"
-                    ? "status"
-                    : "explanation",
-                text: generated.text,
-                citations: generated.citations,
-              },
-            ],
+            blocks: context.grounding
+              ? answer.blocks
+              : [
+                  {
+                    sequence: 1,
+                    type:
+                      generated.outcome && generated.outcome !== "answer"
+                        ? "status"
+                        : "explanation",
+                    text: generated.text,
+                    citations: generated.citations,
+                  },
+                ],
             modelMetrics: metrics,
+            generationCompletedAt: Date.now(),
+            firstValidatedAt: answer.firstValidatedAt ?? Date.now(),
+            evidenceContext: context.grounding,
             code:
               generated.outcome === "knowledge_gap"
                 ? "KNOWLEDGE_COVERAGE_GAP"
@@ -598,6 +626,10 @@ export function registerAnswers(
         store.put("answer", {
           ...a,
           deliveredThrough: Math.max(a.deliveredThrough, input.through),
+          deliveryCompletedAt:
+            a.state === "complete" && input.through >= a.blocks.length
+              ? (a.deliveryCompletedAt ?? Date.now())
+              : a.deliveryCompletedAt,
           version: a.version + 1,
         });
         return { through: Math.max(a.deliveredThrough, input.through) };

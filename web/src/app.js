@@ -8,6 +8,7 @@ import Tickets from "./views/tickets.js";
 import Members from "./views/access.js";
 import AnswerStyle from "./views/answer-style.js";
 import Manage from "./views/manage.js";
+import Knowledge from "./views/knowledge.js";
 
 const UUID_RE = /^[a-f0-9-]{36}$/;
 
@@ -17,6 +18,7 @@ const NAV = [
   { view: "members", label: "人员与标签", icon: "access", manageOnly: true },
   { view: "answer-style", label: "回答风格", icon: "style", adminOnly: true },
   { view: "manage", label: "管理", icon: "admin", manageOnly: true },
+  { view: "knowledge", label: "知识维护", icon: "admin", adminOnly: true },
 ];
 const VIEW_TITLES = {
   ask: ["这次想了解什么？", "检索已发布知识并生成有依据的回答"],
@@ -24,6 +26,7 @@ const VIEW_TITLES = {
   members: ["人员与标签", "为成员设置角色与表达标签，点击即保存"],
   "answer-style": ["回答风格", "为不同人群设置讲解方式，预览并发布后生效"],
   manage: ["管理", "配置领域的来源仓库"],
+  knowledge: ["知识维护", "核对来源、事实与变更，通过评测和复核后发布"],
 };
 
 export default function App() {
@@ -235,6 +238,7 @@ export default function App() {
         </label>
       </div>
       <div class="view-holder">
+        ${isAdmin && html`<section class="view" hidden=${active !== "knowledge"}><${Knowledge} domain=${domain} /></section>`}
         <section class="view" hidden=${active !== "ask"}>
           <${Ask}
             domain=${domain}

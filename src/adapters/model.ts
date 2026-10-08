@@ -12,6 +12,7 @@ export interface GenerationRequest {
   prompt: string;
   signal: AbortSignal;
   maxTokens?: number;
+  temperature?: number;
   /** Streaming hook: invoked with each raw text delta as it arrives. */
   onText?: (delta: string) => void;
 }
@@ -41,7 +42,11 @@ export class PiGateway implements ModelGateway {
   private readonly baseURL: string;
   private readonly models = createModels();
   private readonly disableThinking: boolean;
-  constructor(config: { baseURL: string; token: string; disableThinking?: boolean }) {
+  constructor(config: {
+    baseURL: string;
+    token: string;
+    disableThinking?: boolean;
+  }) {
     this.baseURL = config.baseURL;
     this.disableThinking = config.disableThinking ?? false;
     this.models.setProvider(
@@ -90,6 +95,9 @@ export class PiGateway implements ModelGateway {
         signal: request.signal,
         maxRetries: 0,
         maxTokens: request.maxTokens ?? 1024,
+        ...(request.temperature === undefined
+          ? {}
+          : { temperature: request.temperature }),
         // The company endpoint burns reasoning tokens by default; disabling
         // thinking cuts first-text latency ~2.5x for grounded answers.
         ...(this.disableThinking
@@ -127,7 +135,10 @@ export class PiGateway implements ModelGateway {
       outputTokens: final.usage.output,
       firstTextMs,
       totalMs: performance.now() - start,
-      stopReason: final.rawStopReason ?? stopReasons[final.stopReason] ?? final.stopReason,
+      stopReason:
+        final.rawStopReason ??
+        stopReasons[final.stopReason] ??
+        final.stopReason,
     };
   }
 }

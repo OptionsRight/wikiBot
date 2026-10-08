@@ -189,6 +189,27 @@ export default function Ask({
       toastError(err);
     }
   };
+  const openGrounding = async (kind, id) => {
+    try {
+      const item = await api(
+        `${base(domain)}/releases/${encodeURIComponent(answer.releaseId)}/${kind}/${encodeURIComponent(id)}`,
+      );
+      setEvidence((list) => [
+        ...list.filter((e) => e.key !== id),
+        {
+          key: id,
+          title: kind === "claims" ? "事实声明" : "原始证据摘录",
+          release: answer.releaseId.slice(0, 8),
+          content:
+            kind === "claims"
+              ? `${item.statement}\n适用范围：${Object.values(item.qualifiers).join("，")}`
+              : `${item.excerpt}\n定位：${item.locator.sheet ?? ""} ${item.locator.range ?? item.locator.pointer}`,
+        },
+      ]);
+    } catch (error) {
+      toastError(error);
+    }
+  };
 
   const running = answer && ["queued", "running"].includes(answer.state);
 
@@ -288,6 +309,8 @@ export default function Ask({
           (b) =>
             html`<div key=${b.sequence}>
               <div class="block">${b.text}</div>
+              ${(b.claimVersionIds ?? []).map((id) => html`<button class="chip" onClick=${() => openGrounding("claims", id)}>查看事实</button>`)}
+              ${(b.evidenceIds ?? []).map((id) => html`<button class="chip" onClick=${() => openGrounding("evidence", id)}>查看原始证据</button>`)}
               ${
                 b.citations.length > 0 &&
                 html`<div class="cite-row">

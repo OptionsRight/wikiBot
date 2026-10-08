@@ -43,6 +43,8 @@ export interface Ticket extends Entity {
   releaseId?: string;
   duplicateOf?: string;
   answerId?: string;
+  claimVersionId?: string;
+  evidenceId?: string;
   evidence?: {
     releaseId: string;
     descriptorHash: string;
@@ -109,6 +111,8 @@ export function registerTickets(
             description: z.string().min(5).max(12000),
             category: z.enum(["question", "knowledge"]),
             answerId: z.string().optional(),
+            claimVersionId: z.string().optional(),
+            evidenceId: z.string().optional(),
           })
           .strict(),
         request,
@@ -128,6 +132,22 @@ export function registerTickets(
         const answer = input.answerId
           ? answers.read(request.actor, domain, input.answerId, false)
           : undefined;
+        requireThat(
+          !input.claimVersionId ||
+            answer?.blocks.some((b) =>
+              b.claimVersionIds?.includes(input.claimVersionId!),
+            ),
+          400,
+          "FEEDBACK_CLAIM_NOT_IN_ANSWER",
+        );
+        requireThat(
+          !input.evidenceId ||
+            answer?.blocks.some((b) =>
+              b.evidenceIds?.includes(input.evidenceId!),
+            ),
+          400,
+          "FEEDBACK_EVIDENCE_NOT_IN_ANSWER",
+        );
         const ticket = store.put<Ticket>("ticket", {
           id: id(),
           domain,
@@ -139,6 +159,8 @@ export function registerTickets(
           state: "submitted",
           comments: [],
           answerId: input.answerId,
+          claimVersionId: input.claimVersionId,
+          evidenceId: input.evidenceId,
           evidence: answer
             ? {
                 releaseId: answer.releaseId,

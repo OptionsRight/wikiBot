@@ -88,9 +88,21 @@ try {
     },
     admin,
   );
+  const passwords = {
+    admin: randomBytes(18).toString("base64url"),
+    member: randomBytes(18).toString("base64url"),
+  };
+  await post("PUT", "/api/identities/demo-admin/password", {
+    password: passwords.admin,
+    expectedVersion: 0,
+  });
+  await post("PUT", "/api/identities/demo-member/password", {
+    password: passwords.member,
+    expectedVersion: 0,
+  });
   await writeFile(
     ".local/demo-access.json",
-    JSON.stringify({ operator, admin, member }, null, 2) + "\n",
+    JSON.stringify({ operator, admin, member, passwords }, null, 2) + "\n",
     { mode: 0o600, flag: "wx" },
   );
   process.stdout.write(

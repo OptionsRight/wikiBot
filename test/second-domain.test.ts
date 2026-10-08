@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { snapshot } from "../src/snapshot.js";
 import { setup, publish } from "./helpers.js";
 
@@ -67,7 +68,7 @@ test("a configured non-advertising domain publishes and answers without crossing
       ),
     );
     const bundle = await snapshot(
-      new URL("../examples/second-domain/wiki", import.meta.url).pathname,
+      fileURLToPath(new URL("../examples/second-domain/wiki", import.meta.url)),
       manifest,
     );
     const release = await publish(t, bundle, "equipment", admin);

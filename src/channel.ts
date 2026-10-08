@@ -415,7 +415,52 @@ export function registerChannel(
       }
       if (messageText === "/帮助") {
         await send(
-          "直接发送问题即可，机器人会检索已发布知识并回答（回复支持 Markdown 排版，附依据页面编号）。\n反馈最近答案：回复“反馈 问题描述”\n登记新问题：回复“登记 问题描述”\n/取消 停止生成；/答案 [编号] 查看状态\n/偏好 查看；设置示例 /偏好 业务 入门（风格 业务|技术，深度 入门|熟练）；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/工单 编号 查看处理进度；/附件 编号 转网页\n/身份 查看资格标签；/投递 查看未知回执\n处理人：/备注、/拒绝 编号@版本 说明；/合并 编号@版本 目标编号；/指派 编号@版本 处理人",
+          "直接发送问题即可，机器人会检索已发布知识并回答（回复支持 Markdown 排版，附依据页面编号）。\n反馈最近答案：回复“反馈 问题描述”\n登记新问题：回复“登记 问题描述”\n/取消 停止生成；/答案 [编号] 查看状态\n/偏好 查看；设置示例 /偏好 业务 入门（风格 业务|技术，深度 入门|熟练）；/清除偏好 恢复默认\n/通知 查看通知状态；/重试通知 编号@版本 仅重试明确失败的通知\n/工单 编号 查看处理进度；/附件 编号 转网页\n/身份 查看资格标签；/投递 查看未知回执\n管理员：/知识来源；/解析来源 来源编号 版本编号；/知识任务 任务编号（事实、冲突和评测复核转认证网页）\n处理人：/备注、/拒绝 编号@版本 说明；/合并 编号@版本 目标编号；/指派 编号@版本 处理人",
+          true,
+        );
+        return;
+      }
+      if (messageText === "/知识来源") {
+        access(store, actor, domain, true);
+        const data = await command(actor, event, "GET", `${base}/sources`);
+        await send(
+          `来源 ${data.sources.length} 项；解析任务 ${data.jobs.length} 项。\n${data.jobs
+            .slice(-8)
+            .map((j: { id: string; state: string }) => `${j.id}：${j.state}`)
+            .join(
+              "\n",
+            )}\n原文、事实核对和发布请使用认证网页：${origin ?? "请联系管理员提供网页地址"}`,
+          true,
+        );
+        return;
+      }
+      const normalize = messageText.match(
+        /^\/解析来源 ([a-zA-Z0-9_-]+) ([a-zA-Z0-9_-]+)$/,
+      );
+      if (normalize) {
+        const job = await command(
+          actor,
+          event,
+          "POST",
+          `${base}/sources/${normalize[1]}/normalize`,
+          { sourceVersionId: normalize[2] },
+        );
+        await send(
+          `解析任务 ${job.id}：${job.state}。解析完成后仍需复核发布。`,
+          true,
+        );
+        return;
+      }
+      const jobStatus = messageText.match(/^\/知识任务 ([a-zA-Z0-9_-]+)$/);
+      if (jobStatus) {
+        const job = await command(
+          actor,
+          event,
+          "GET",
+          `${base}/knowledge-jobs/${jobStatus[1]}`,
+        );
+        await send(
+          `任务 ${job.id}：${job.state}${job.code ? `（${job.code}）` : ""}\n${(job.result?.warnings ?? []).join("\n")}`,
           true,
         );
         return;
@@ -878,7 +923,7 @@ export function registerChannel(
               event.chatType === "group"
                 ? "当前无法在群内回答。群成员访问资格需要完整核验，请在机器人单聊中提问。"
                 : (usageHints[code] ??
-                  `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`),
+                    `本次请求未完成：${error instanceof Fault ? error.code : "REQUEST_FAILED"}。可在认证网页查看知识、补充条件或登记问题。`),
               true,
             );
             store.put("inbox", {

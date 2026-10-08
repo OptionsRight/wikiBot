@@ -10,8 +10,14 @@ import {
   type Entity,
   type Domain,
 } from "./core.js";
-import { currentRelease, modelState, type Release } from "./publication.js";
-import { bundleSchema } from "./procedures.js";
+import {
+  freezeReleaseClaims,
+  currentRelease,
+  modelState,
+  type Release,
+} from "./publication.js";
+import { bundleSchema, isV2 } from "./procedures.js";
+import { wireHash } from "./knowledge/contracts.js";
 import {
   answerTemplatesSchema,
   recommendedAnswerTemplates,
@@ -178,6 +184,32 @@ export function registerAnswerStyle(app: FastifyInstance, store: Store) {
         const bundle = bundleSchema.parse({
           ...active.bundle,
           cases,
+          ...(isV2(active.bundle)
+            ? {
+                dependencyManifest: {
+                  ...active.bundle.dependencyManifest,
+                  edges: [
+                    ...active.bundle.dependencyManifest.edges.filter(
+                      (e) => e.kind !== "case",
+                    ),
+                    ...cases.flatMap((c) =>
+                      (c.expectedCitations ?? []).map((p) => ({
+                        from: p,
+                        to: c.id,
+                        kind: "case",
+                      })),
+                    ),
+                  ],
+                },
+                evalPolicy: {
+                  ...active.bundle.evalPolicy,
+                  suiteHash: wireHash(cases),
+                  calibrationId:
+                    active.bundle.evalPolicy.mode === "blocking" ? id() : null,
+                  version: active.bundle.evalPolicy.version + "-style",
+                },
+              }
+            : {}),
           config: { ...active.bundle.config, answerTemplates: draft.templates },
         });
         const domainState = store.get<Domain>("domain", domain)!;
@@ -198,6 +230,7 @@ export function registerAnswerStyle(app: FastifyInstance, store: Store) {
             caseIds,
           },
         });
+        freezeReleaseClaims(store, r);
         store.put<StyleDraft>("answer-style-draft", {
           ...draft,
           version: draft.version + 1,

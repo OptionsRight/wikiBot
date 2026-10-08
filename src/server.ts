@@ -9,6 +9,8 @@ import { recoveryProofSchema, type RecoveryAuthority } from "./operations.js";
 import { requireThat } from "./core.js";
 import { demoModel } from "./demo-model.js";
 import { wecomConfiguration, operationalRetention } from "./runtime-config.js";
+import { profileSchema } from "./knowledge/contracts.js";
+import { judgeProfileSchema } from "./knowledge/semantic-evaluation.js";
 const env = process.env,
   host = env.HOST ?? "127.0.0.1",
   port = Number(env.PORT ?? 3000),
@@ -66,6 +68,33 @@ if (demo) {
   bootstrap = { token: access.operator, subject: "demo-operator" };
 }
 const app = await buildApp({
+  semanticEvaluation:
+    env.EVALUATION_PYTHON && env.JUDGE_PROFILE_PATH
+      ? {
+          python: env.EVALUATION_PYTHON,
+          judge: judgeProfileSchema.parse(
+            JSON.parse(await readFile(resolve(env.JUDGE_PROFILE_PATH), "utf8")),
+          ),
+          timeoutMs: Number(env.SEMANTIC_EVALUATION_TIMEOUT_MS ?? 300000),
+        }
+      : undefined,
+  knowledge:
+    env.KNOWLEDGE_ASSET_ROOT && env.NORMALIZER_PROFILE_PATH
+      ? {
+          assetRoot: resolve(env.KNOWLEDGE_ASSET_ROOT),
+          normalizerPython: env.NORMALIZER_PYTHON,
+          normalizerProfile: profileSchema.parse(
+            JSON.parse(
+              await readFile(resolve(env.NORMALIZER_PROFILE_PATH), "utf8"),
+            ),
+          ),
+          repositories: env.CODE_REPOSITORIES_PATH
+            ? JSON.parse(
+                await readFile(resolve(env.CODE_REPOSITORIES_PATH), "utf8"),
+              )
+            : undefined,
+        }
+      : undefined,
   database,
   bootstrap,
   identity,

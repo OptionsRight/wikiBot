@@ -1,0 +1,116 @@
+[
+  {
+    "format": "pdf",
+    "sample": "normal",
+    "status": "complete",
+    "warnings": [],
+    "blocks": 1,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "pdf",
+    "sample": "boundary",
+    "status": "partial",
+    "warnings": [
+      "PAGE_WITHOUT_NATIVE_TEXT:2",
+      "PICTURE_CONTENT_REQUIRES_REVIEW:#/pictures/0"
+    ],
+    "blocks": 1,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "pdf",
+    "sample": "invalid",
+    "status": "failed",
+    "warnings": [
+      "MIME_MISMATCH"
+    ],
+    "blocks": 0,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "docx",
+    "sample": "normal",
+    "status": "complete",
+    "warnings": [],
+    "blocks": 2,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "docx",
+    "sample": "boundary",
+    "status": "partial",
+    "warnings": [
+      "PICTURE_CONTENT_REQUIRES_REVIEW:#/pictures/0"
+    ],
+    "blocks": 3,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "docx",
+    "sample": "invalid",
+    "status": "failed",
+    "warnings": [
+      "BadZipFile"
+    ],
+    "blocks": 0,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "pptx",
+    "sample": "normal",
+    "status": "complete",
+    "warnings": [],
+    "blocks": 2,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "pptx",
+    "sample": "boundary",
+    "status": "partial",
+    "warnings": [
+      "PICTURE_CONTENT_REQUIRES_REVIEW:#/pictures/0"
+    ],
+    "blocks": 2,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "pptx",
+    "sample": "invalid",
+    "status": "failed",
+    "warnings": [
+      "BadZipFile"
+    ],
+    "blocks": 0,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "xlsx",
+    "sample": "normal",
+    "status": "complete",
+    "warnings": [],
+    "blocks": 1,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "xlsx",
+    "sample": "boundary",
+    "status": "partial",
+    "warnings": [
+      "FORMULA_NOT_EVALUATED:Limits!B3",
+      "HIDDEN_SHEET_REQUIRES_REVIEW:Hidden"
+    ],
+    "blocks": 2,
+    "doclingVersion": "2.135.0"
+  },
+  {
+    "format": "xlsx",
+    "sample": "invalid",
+    "status": "failed",
+    "warnings": [
+      "BadZipFile"
+    ],
+    "blocks": 0,
+    "doclingVersion": "2.135.0"
+  }
+]

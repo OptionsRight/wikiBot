@@ -41,7 +41,7 @@ export default function Login({ sso, onLogin, busy }) {
                   type="password"
                   required
                   autocomplete="current-password"
-                  placeholder="默认 1213456"
+                  placeholder="请输入管理员为你设置的独立密码"
                 />
               </label>
               <button

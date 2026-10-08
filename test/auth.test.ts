@@ -88,7 +88,7 @@ test("persisted cookie sessions cannot mutate when the trusted public origin is 
   }
 });
 
-test("password login issues working tokens with the default password", async () => {
+test("password login requires individually provisioned hashed credentials", async () => {
   const app = await buildApp({
     database: ":memory:",
     bootstrap: { token: "operator-test", subject: "operator" },
@@ -123,6 +123,9 @@ test("password login issues working tokens with the default password", async () 
     const config = await app.inject({ url: "/auth/config" });
     assert.equal(config.json().password, true);
     assert.equal(config.json().sso, false);
+    const missing=await app.inject({method:"POST",url:"/auth/password",payload:{subject:"alice",password:"1213456"}});
+    assert.equal(missing.statusCode,401,"legacy shared password must never authenticate");
+    for(const subject of ["alice","operator"])assert.equal((await app.inject({method:"PUT",url:`/api/identities/${subject}/password`,headers:{...headers,"idempotency-key":`set-password-${subject}`},payload:{password:"test-only-personal-password",expectedVersion:0}})).statusCode,200);
     // 未知账号被拒
     assert.equal(
       (
@@ -149,7 +152,7 @@ test("password login issues working tokens with the default password", async () 
     const login = await app.inject({
       method: "POST",
       url: "/auth/password",
-      payload: { subject: "alice", password: "1213456" },
+      payload: { subject: "alice", password: "test-only-personal-password" },
     });
     assert.equal(login.statusCode, 200);
     const token = login.json().token;
@@ -164,7 +167,7 @@ test("password login issues working tokens with the default password", async () 
     const operatorLogin = await app.inject({
       method: "POST",
       url: "/auth/password",
-      payload: { subject: "operator", password: "1213456" },
+      payload: { subject: "operator", password: "test-only-personal-password" },
     });
     assert.equal(operatorLogin.statusCode, 200);
     const operatorMe = await app.inject({

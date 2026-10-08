@@ -1,0 +1,7 @@
+{
+  "model": "REPLACE_WITH_COMPANY_MODEL_ID",
+  "revision": "REPLACE_WITH_QUALIFIED_REVISION",
+  "promptVersion": "1",
+  "temperature": 0,
+  "deepevalVersion": "4.2.8"
+}

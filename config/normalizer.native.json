@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "doclingVersion": "2.135.0",
+  "pipeline": "native",
+  "ocr": false,
+  "modelArtifactsHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "maxBytes": 33554432,
+  "maxExpandedBytes": 134217728,
+  "maxPages": 200,
+  "timeoutMs": 120000,
+  "memoryMb": 4096,
+  "cpuSeconds": 90
+}

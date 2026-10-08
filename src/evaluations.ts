@@ -6,6 +6,9 @@ import { modelState, type Release } from "./publication.js";
 import { retrieve } from "./retrieval.js";
 import { generateAnswer } from "./explanation.js";
 import type { ModelGateway } from "./adapters/model.js";
+import { evidenceContext } from "./knowledge/context.js";
+import { isV2 } from "./procedures.js";
+import { requireSemanticEvaluation } from "./knowledge/semantic-evaluation.js";
 export interface Evaluation extends Entity {
   releaseId: string;
   descriptorHash: string;
@@ -22,6 +25,7 @@ export interface Evaluation extends Entity {
   lease?: string;
 }
 export function requireEvaluation(store: Store, r: Release) {
+  requireSemanticEvaluation(store, r);
   const runs = store.list<Evaluation>("evaluation", r.domain);
   if (r.bundle.config.answerTemplates) {
     requireThat(
@@ -169,7 +173,12 @@ export function registerEvaluations(
     try {
       const r = store.get<Release>("release", rid)!,
         c = r.bundle.cases.find((c) => c.id === input.caseId)!;
-      const pages = retrieve(r.bundle, c.question);
+      const context = evidenceContext(
+        r.bundle,
+        retrieve(r.bundle, c.question),
+        "validAt" in c ? (c.validAt as number | undefined) : undefined,
+      );
+      const pages = context.pages;
       if (pages.length) {
         requireThat(model, 503, "MODEL_UNAVAILABLE");
         const controller = new AbortController();
@@ -195,6 +204,7 @@ export function registerEvaluations(
                 pages,
                 style: c.style ?? "business",
                 depth: c.depth ?? "beginner",
+                grounding: context.grounding,
               },
               controller.signal,
             ),
@@ -204,6 +214,24 @@ export function registerEvaluations(
           clearTimeout(timer);
         }
         const { answer, metrics } = generated;
+        if (isV2(r.bundle)) {
+          const expectedClaims = r.bundle.cases.find(
+            (item) => item.id === c.id,
+          )!.expectedClaimIds;
+          const blocks = "blocks" in generated ? generated.blocks : [];
+          if (
+            !expectedClaims.every((cid) =>
+              blocks.some((b) =>
+                b.claimVersionIds.some((vid) =>
+                  context.grounding?.claims.some(
+                    (claim) => claim.claimId === cid && claim.versionId === vid,
+                  ),
+                ),
+              ),
+            )
+          )
+            failures.push("MISSING_EXPECTED_CLAIM");
+        }
         const expected = c.expectedCitations;
         const outcome = answer.outcome ?? "answer";
         if ((c.expectedOutcome ?? "answer") !== outcome)
@@ -222,6 +250,8 @@ export function registerEvaluations(
           metrics,
           retrieved: pages.map(({ page }) => page.id),
           expectedCitations: c.expectedCitations ?? null,
+          context: pages.map((p) => p.content),
+          grounding: context.grounding,
         };
       } else {
         if (c.expectedOutcome !== "knowledge_gap")

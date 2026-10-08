@@ -15,6 +15,9 @@ import type { Revision } from "./revisions.js";
 import { recoverEvaluations } from "./evaluations.js";
 import { modelState, type ModelState, type Release } from "./publication.js";
 import { stopAnswer, markModelImpact, type Notice } from "./governance.js";
+import { recoverKnowledgeJobs } from "./knowledge/jobs.js";
+import { verifyPublishedArtifacts } from "./knowledge/recovery.js";
+import type { SemanticRun } from "./knowledge/semantic-evaluation.js";
 export const recoveryProofSchema = z
   .object({
     domain: z.string(),
@@ -106,6 +109,18 @@ export function quarantine(store: Store) {
         });
   });
   recoverEvaluations(store, true);
+  recoverKnowledgeJobs(store, true);
+  store.tx(() => {
+    for (const run of store.knowledgeList<SemanticRun>("semantic_reports"))
+      if (run.state === "running")
+        store.knowledgePut("semantic_reports", {
+          ...run,
+          state: "failed",
+          pass: false,
+          code: "RECOVERY_EXECUTION_UNCONFIRMED",
+          version: run.version + 1,
+        });
+  });
 }
 export interface OperationalRetention {
   eventRetentionMs: number;
@@ -116,6 +131,7 @@ export function registerOperations(
   store: Store,
   authority?: RecoveryAuthority,
   retention?: OperationalRetention,
+  assetRoot?: string,
 ) {
   if (retention)
     z.object({
@@ -308,6 +324,7 @@ export function registerOperations(
             409,
             "RESTORED_BUNDLE_CORRUPT",
           );
+        if (active) verifyPublishedArtifacts(store, active, assetRoot);
         for (const g of store.list<Grant>("grant", domain))
           store.put("grant", { ...g, enabled: false, version: g.version + 1 });
         for (const g of proof.grants) {

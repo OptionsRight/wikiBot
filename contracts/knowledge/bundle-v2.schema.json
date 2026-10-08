@@ -1,0 +1,873 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "pages": {
+      "minItems": 1,
+      "maxItems": 500,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 200000
+          },
+          "hash": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "title",
+          "content",
+          "hash"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "sourceArtifacts": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "excerpt",
+              "attachment"
+            ]
+          },
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "text/plain",
+              "image/png",
+              "image/jpeg"
+            ]
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 1400000
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "kind",
+          "mediaType",
+          "content",
+          "hash"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "cases": {
+      "minItems": 1,
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "business",
+              "technical"
+            ]
+          },
+          "depth": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "experienced"
+            ]
+          },
+          "expectedOutcome": {
+            "type": "string",
+            "enum": [
+              "answer",
+              "knowledge_gap",
+              "clarification"
+            ]
+          },
+          "expectedCitations": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+            }
+          },
+          "expectedFacts": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "forbiddenFacts": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "expectedClaimIds": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+            }
+          },
+          "validAt": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "expectedFacts",
+          "forbiddenFacts",
+          "expectedClaimIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "domainLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "answerTemplates": {
+          "type": "object",
+          "properties": {
+            "business": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "technical": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "beginner": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "experienced": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          "required": [
+            "business",
+            "technical",
+            "beginner",
+            "experienced"
+          ],
+          "additionalProperties": false
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "modelRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "promptVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "templateVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "retrievalVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "protocolVersion": {
+          "type": "string",
+          "const": "2"
+        },
+        "evaluationVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "model",
+        "modelRevision",
+        "promptVersion",
+        "templateVersion",
+        "retrievalVersion",
+        "protocolVersion",
+        "evaluationVersion"
+      ],
+      "additionalProperties": false
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 2
+    },
+    "sourceManifest": {
+      "maxItems": 2000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sourceVersionId": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "sourceId": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+          },
+          "rawSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "wiki",
+              "document",
+              "repository"
+            ]
+          },
+          "profileHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "artifactHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "sourceVersionId",
+          "sourceId",
+          "rawSha256",
+          "kind",
+          "profileHash",
+          "artifactHash"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "groundingManifest": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "const": 1
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "page",
+            "mixed",
+            "claims"
+          ]
+        },
+        "policyVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "recordedCutoff": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "claims": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claimId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "versionId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "subjectId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "predicate": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "qualifiers": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]+$"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "statement": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000
+              },
+              "typedValue": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              },
+              "validityKind": {
+                "type": "string",
+                "enum": [
+                  "known",
+                  "unknown",
+                  "reviewer_asserted"
+                ]
+              },
+              "validFrom": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "validTo": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recordedFrom": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "recordedTo": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "proposed",
+                  "approved",
+                  "rejected",
+                  "retracted"
+                ]
+              },
+              "supersedesVersionId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "extractionProfileHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "evidenceIds": {
+                "minItems": 1,
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                }
+              }
+            },
+            "required": [
+              "claimId",
+              "versionId",
+              "domain",
+              "subjectId",
+              "predicate",
+              "qualifiers",
+              "statement",
+              "typedValue",
+              "validityKind",
+              "validFrom",
+              "validTo",
+              "recordedFrom",
+              "recordedTo",
+              "status",
+              "supersedesVersionId",
+              "extractionProfileHash",
+              "evidenceIds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "evidence": {
+          "maxItems": 10000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "evidenceId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "sourceVersionId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "resolverKind": {
+                "type": "string",
+                "enum": [
+                  "wiki",
+                  "document",
+                  "repository"
+                ]
+              },
+              "locator": {
+                "type": "object",
+                "properties": {
+                  "precision": {
+                    "type": "string",
+                    "enum": [
+                      "document",
+                      "block",
+                      "page",
+                      "slide",
+                      "cells",
+                      "lines"
+                    ]
+                  },
+                  "pointer": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "page": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "sheet": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "range": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "startLine": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "endLine": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "bbox": {
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "precision",
+                  "pointer"
+                ],
+                "additionalProperties": false
+              },
+              "rawSha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "contentHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "excerpt": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "excerpt",
+                  "admin"
+                ]
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "fresh",
+                  "stale",
+                  "unresolved"
+                ]
+              }
+            },
+            "required": [
+              "evidenceId",
+              "domain",
+              "sourceVersionId",
+              "resolverKind",
+              "locator",
+              "rawSha256",
+              "contentHash",
+              "excerpt",
+              "visibility",
+              "state"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sidecars": {
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "schemaVersion": {
+                "type": "number",
+                "const": 1
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "pageId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "pageHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "generationId": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "claimVersionIds": {
+                "maxItems": 1000,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                }
+              },
+              "evidenceIds": {
+                "maxItems": 1000,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                }
+              },
+              "dependencies": {
+                "maxItems": 1000,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+                }
+              },
+              "coverageMode": {
+                "type": "string",
+                "enum": [
+                  "legacy_page",
+                  "mixed",
+                  "claims"
+                ]
+              },
+              "projectionHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "domain",
+              "pageId",
+              "pageHash",
+              "generationId",
+              "claimVersionIds",
+              "evidenceIds",
+              "dependencies",
+              "coverageMode",
+              "projectionHash"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "mode",
+        "policyVersion",
+        "recordedCutoff",
+        "claims",
+        "evidence",
+        "sidecars"
+      ],
+      "additionalProperties": false
+    },
+    "dependencyManifest": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "const": 1
+        },
+        "resolverVersion": {
+          "type": "string",
+          "const": "1"
+        },
+        "extractorProfileHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "edges": {
+          "maxItems": 30000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "evidence",
+                  "claim",
+                  "page",
+                  "case"
+                ]
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "kind"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "resolverVersion",
+        "extractorProfileHash",
+        "edges"
+      ],
+      "additionalProperties": false
+    },
+    "evalPolicy": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "shadow",
+            "blocking"
+          ]
+        },
+        "judgeProfileHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "suiteHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "metrics": {
+          "minItems": 4,
+          "maxItems": 4,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": [
+                  "faithfulness",
+                  "relevancy",
+                  "coverage",
+                  "forbidden"
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "thresholdBps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              }
+            },
+            "required": [
+              "name",
+              "required",
+              "thresholdBps"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "calibrationId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,100}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxAgeMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2592000000
+        }
+      },
+      "required": [
+        "version",
+        "mode",
+        "judgeProfileHash",
+        "suiteHash",
+        "metrics",
+        "calibrationId",
+        "maxAgeMs"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "pages",
+    "cases",
+    "config",
+    "schemaVersion",
+    "sourceManifest",
+    "groundingManifest",
+    "dependencyManifest",
+    "evalPolicy"
+  ],
+  "additionalProperties": false
+}

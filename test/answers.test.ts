@@ -194,8 +194,10 @@ test("streamed partials are display-only and the final validated block is author
           t.alice,
         )
       ).value;
-      if (answer.state === "running" && answer.blocks[0]?.text)
-        observed.push(answer.blocks[0].text);
+      if (answer.state === "running" && answer.preview?.text) {
+        observed.push(answer.preview.text);
+        assert.equal(answer.blocks.length,0,"unvalidated preview is not a formal block");
+      }
       if (answer.state !== "queued" && answer.state !== "running") break;
       await new Promise((r) => setTimeout(r, 60));
     }
@@ -214,7 +216,7 @@ test("streamed partials are display-only and the final validated block is author
   }
 });
 
-test("bare-markdown output degrades to the top retrieved page instead of failing", async () => {
+test("bare-markdown output fails without treating the first retrieved page as evidence", async () => {
   let malformed = false;
   const t = await setup({
     model: {
@@ -258,10 +260,9 @@ test("bare-markdown output degrades to the top retrieved page instead of failing
       if (answer.state !== "queued" && answer.state !== "running") break;
       await new Promise((r) => setTimeout(r, 10));
     }
-    assert.equal(answer.state, "complete");
-    assert.equal(answer.code, "ANSWER");
-    assert.match(answer.blocks[0].text, /直接是 Markdown 正文/);
-    assert.ok(answer.blocks[0].citations.length >= 1);
+    assert.equal(answer.state, "failed");
+    assert.equal(answer.code, "MODEL_PROTOCOL_INVALID");
+    assert.equal(answer.blocks.length, 0);
   } finally {
     await t.app.close();
   }

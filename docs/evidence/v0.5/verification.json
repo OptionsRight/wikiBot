@@ -1,0 +1,49 @@
+{
+  "baselineCommit": "04e6029",
+  "remoteMain": "cbc4742",
+  "platform": "Windows",
+  "node": "24.19.0",
+  "python": "3.12.10",
+  "baseline": {
+    "command": "node --import tsx --test test/*.test.ts",
+    "tests": 119,
+    "passed": 111,
+    "failed": 8,
+    "durationSeconds": 45.54
+  },
+  "final": {
+    "command": "node --import tsx --test --test-concurrency=2 test/*.test.ts",
+    "tests": 132,
+    "passed": 132,
+    "failed": 0,
+    "skipped": 0,
+    "durationSeconds": 30.0920997,
+    "typecheck": "pass",
+    "build": "pass"
+  },
+  "docling": {
+    "version": "2.135.0",
+    "realCases": 12,
+    "passed": 12
+  },
+  "deepeval": {
+    "version": "4.2.8",
+    "realLibraryExecution": true,
+    "judge": "synthetic company gateway fixture",
+    "companyQualityAcceptance": false
+  },
+  "endToEnd": "END_TO_END_PASS",
+  "browserSmoke": [
+    "admin login and source parsing",
+    "claim evidence inspection",
+    "complete semantic report",
+    "member has no administration navigation"
+  ],
+  "externalAcceptance": [
+    "company model and judge",
+    "business expert calibration",
+    "real WeCom and load",
+    "OCR weights if enabled",
+    "production recovery authority"
+  ]
+}

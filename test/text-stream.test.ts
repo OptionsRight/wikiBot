@@ -122,10 +122,10 @@ test("an invalid JSON escape in the text string is repaired, not dumped raw", as
   );
 });
 
-test("an unrepairable envelope degrades to its extracted text, never raw JSON", async () => {
+test("an unrepairable envelope fails without inventing provenance or delivering raw JSON", async () => {
   // A raw control character inside the string defeats both JSON.parse and
   // escape repair; the delivery must still show the text field's content.
-  const { answer, metrics } = await generateAnswer(
+  await assert.rejects(() => generateAnswer(
     {
       async generate(r) {
         return {
@@ -148,14 +148,7 @@ test("an unrepairable envelope degrades to its extracted text, never raw JSON", 
       depth: "beginner",
     },
     new AbortController().signal,
-  );
-  assert.equal(answer.text, "第一行\n第二行");
-  assert.ok(!answer.text.includes('{"text"'));
-  assert.deepEqual(answer.citations, ["guide"]);
-  assert.equal(
-    (metrics as { protocolFallback?: boolean }).protocolFallback,
-    true,
-  );
+  ), /MODEL_PROTOCOL_INVALID/);
 });
 
 test("published domain labels and each style/depth template reach the model", async () => {

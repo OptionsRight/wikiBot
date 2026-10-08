@@ -1,0 +1,8 @@
+{
+  "ads:service": {
+    "root": "/absolute/path/to/read-only/repository",
+    "ref": "REPLACE_WITH_APPROVED_COMMIT_SHA",
+    "allowedPaths": ["src/", "docs/"],
+    "extensions": [".ts", ".tsx", ".js", ".py", ".md"]
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "report"
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "releaseId": {
+          "type": "string"
+        },
+        "descriptorHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "modelEpoch": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "judgeEpoch": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "suiteHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "evalPolicyHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "judgeProfileHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "caseIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inputHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "jobId": {
+          "type": "string"
+        },
+        "attempt": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "fencingToken": {
+          "type": "string"
+        },
+        "deadline": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "releaseId",
+        "descriptorHash",
+        "modelEpoch",
+        "judgeEpoch",
+        "suiteHash",
+        "evalPolicyHash",
+        "judgeProfileHash",
+        "caseIds",
+        "inputHash",
+        "jobId",
+        "attempt",
+        "fencingToken",
+        "deadline"
+      ],
+      "additionalProperties": false
+    },
+    "cases": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "string"
+          },
+          "inputHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "metrics": {
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "faithfulness",
+                    "relevancy",
+                    "coverage",
+                    "forbidden"
+                  ]
+                },
+                "scoreBps": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "maxLength": 20000
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "complete",
+                    "failed"
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "scoreBps",
+                "reason",
+                "state"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "caseId",
+          "inputHash",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "deepeval": {
+          "type": "string"
+        },
+        "python": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deepeval",
+        "python"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "type",
+    "binding",
+    "cases",
+    "runtime"
+  ],
+  "additionalProperties": false
+}

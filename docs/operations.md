@@ -1,3 +1,5 @@
+> v0.5 文档/事实/评测、迁移和恢复新增步骤见 [v0.5 运行手册](operations-v0.5.md)。本页保留已有领域、工单和渠道配置。
+
 # 本地运行与联调
 
 当前是单机、单 Node.js 进程的集成实现。SQLite WAL 保存不可变知识包、业务状态、租约、入站去重、通知记录及审计；不用于多机或生产容量承诺。Node.js 24.13+ 的 SQLite API 仍带实验性标记。
@@ -10,7 +12,7 @@ npm run demo
 WIKIBOT_DEMO=1 npm run dev
 ```
 
-访问 `http://127.0.0.1:3000`。`.local/demo-access.json` 的 `member` 用于成员、`admin` 用于维护、`operator` 仅用于平台配置。文件和数据库已忽略，不提交 Git。演示使用合成流程与固定模型，不连接企微或公司模型；令牌 24 小时后过期。demo 拒绝覆盖已有数据库。真实环境使用独立 DATABASE_PATH，不能混入演示资格和评估。
+访问 `http://127.0.0.1:3000`。`.local/demo-access.json` 的 `member` 用于成员、`admin` 用于维护、`operator` 仅用于平台配置。网页登录用 `demo-admin` / `demo-member` 和该文件的 `passwords.admin` / `passwords.member`；不再提供共享默认密码。文件和数据库已忽略，不提交 Git。演示使用合成流程与固定模型，不连接企微或公司模型；令牌 24 小时后过期。demo 拒绝覆盖已有数据库。真实环境使用独立 DATABASE_PATH，不能混入演示资格和评估。
 
 ```sh
 npm run typecheck

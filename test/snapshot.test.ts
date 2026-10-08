@@ -25,7 +25,9 @@ test("snapshot reads only declared regular Markdown files and detects changed co
       /SOURCE_BASELINE_CONFLICT/,
     );
     await rm(join(root, bundle.pages[0]!.path));
-    await symlink("/etc/passwd", join(root, bundle.pages[0]!.path));
+    // Junctions need no Windows symlink privilege and still exercise the same
+    // lstat rejection, before any traversal of the target.
+    await symlink(root, join(root, bundle.pages[0]!.path), process.platform === "win32" ? "junction" : "dir");
     await assert.rejects(() => snapshot(root, manifest), /SYMLINK_FORBIDDEN/);
   } finally {
     await rm(root, { recursive: true, force: true });
